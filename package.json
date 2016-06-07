@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "zip": "git archive -o mb-rest-api.zip --prefix=mb-rest-api/ HEAD"
+  }
+}
