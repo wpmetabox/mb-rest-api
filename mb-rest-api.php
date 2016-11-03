@@ -73,6 +73,10 @@ class MB_Rest_API
 		global $mb_term_meta_boxes;
 		RWMB_Core::get_meta_boxes();
 		$output = array();
+
+		if( !is_array( $mb_term_meta_boxes ) || !$mb_term_meta_boxes instanceof Traversable )
+			return $output;
+
 		foreach ( $mb_term_meta_boxes as $meta_box )
 		{
 			if ( ! in_array( $object['taxonomy'], (array) $meta_box['taxonomies'] ) )
