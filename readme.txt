@@ -3,8 +3,8 @@ Contributors: metabox, rilwis
 Donate link: http://www.deluxeblogtips.com/donate
 Tags: meta-box, custom fields, custom field, meta, meta-boxes, field, rest, rest api, api, wp api, wp rest api, json
 Requires at least: 4.1
-Tested up to: 4.5.2
-Stable tag: 1.0.0
+Tested up to: 4.6.1
+Stable tag: 1.0.1
 License: GPLv2 or later
 
 Add Meta Box custom fields to the WordPress REST API responses.
@@ -37,6 +37,9 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 == Screenshots ==
 
 == Changelog ==
+
+= 1.0.1 =
+* Fix: error when MB Term Meta is not installed
 
 = 1.0.0 =
 * Initial release

@@ -2,8 +2,6 @@
 * text=auto
 
 # Ignore files when export
-.DS_Store
-Thumbs.db
 *.json export-ignore
 .gitattributes export-ignore
 readme.md export-ignore
