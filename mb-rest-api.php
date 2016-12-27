@@ -69,21 +69,13 @@ class MB_Rest_API {
 	 *
 	 * @return array
 	 */
-	public function update_post_meta_rest_api( $value, $object ) {
+	public function update_post_meta_rest_api( $json, $object ) {
+		$output = array();
+		$post_data = json_decode( $json, true );
 
-		function get_json($string) {
-			$json = json_decode($string, true);
-			if(json_last_error() != JSON_ERROR_NONE){
-				return false;
-			}
-			return $json;
-		}
-		
-		$post_data = get_json($value);
-
-		if($post_data){
-			$custom_field_names = get_post_custom_keys($object->ID);
-			foreach($post_data as $field_name => $value){
+		if(json_last_error() == JSON_ERROR_NONE){
+			$custom_field_names = get_post_custom_keys( $object->ID );
+			foreach( $post_data as $field_name => $value ){
 				if ( ! in_array( $field_name, $custom_field_names ) ) {
 					continue;
 				}
