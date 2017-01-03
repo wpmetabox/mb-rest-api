@@ -74,11 +74,7 @@ class MB_Rest_API {
 		$post_data = json_decode( $json, true );
 
 		if(json_last_error() == JSON_ERROR_NONE){
-			$custom_field_names = get_post_custom_keys( $object->ID );
 			foreach( $post_data as $field_name => $value ){
-				if ( ! in_array( $field_name, $custom_field_names ) ) {
-					continue;
-				}
 				$output[ $field_name ] = update_post_meta( $object->ID, $field_name, strip_tags( $value ) );
 			}
 		}
