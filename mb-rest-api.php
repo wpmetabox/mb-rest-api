@@ -8,14 +8,14 @@
  * Author URI: http://www.deluxeblogtips.com
  * License: GPL2+
  * Text Domain: mb-rest-api
- * Domain Path: /lang/
+ * Domain Path: /languages/
  */
 
 /**
  * Load necessary admin files
  */
-include(ABSPATH . 'wp-admin/includes/template.php');
-include(ABSPATH . 'wp-admin/includes/post.php');
+include_once ABSPATH . 'wp-admin/includes/template.php';
+include_once ABSPATH . 'wp-admin/includes/post.php';
 
 /**
  * Meta Box Rest API class
@@ -28,7 +28,7 @@ class MB_Rest_API {
 	 */
 	public function init() {
 		register_rest_field( $this->get_types(), 'meta_box', array(
-			'get_callback' => array( $this, 'get_post_meta_rest_api' ),
+			'get_callback'    => array( $this, 'get_post_meta_rest_api' ),
 			'update_callback' => array( $this, 'update_post_meta_rest_api' )
 		) );
 		register_rest_field( $this->get_types( 'taxonomy' ), 'meta_box', array(
@@ -61,24 +61,25 @@ class MB_Rest_API {
 
 		return $output;
 	}
-	
+
 	/**
 	 * Update post meta for the rest API.
 	 *
-	 * @param json string $value post_custom, array $object Post object
+	 * @param string $json Post meta values in JSON format.
+	 * @param object $object Post object.
 	 *
 	 * @return array
 	 */
 	public function update_post_meta_rest_api( $json, $object ) {
-		$output = array();
+		$output    = array();
 		$post_data = json_decode( $json, true );
 
-		if(json_last_error() == JSON_ERROR_NONE){
-			foreach( $post_data as $field_name => $value ){
+		if ( JSON_ERROR_NONE == json_last_error() ) {
+			foreach ( $post_data as $field_name => $value ) {
 				$output[ $field_name ] = update_post_meta( $object->ID, $field_name, strip_tags( $value ) );
 			}
 		}
-		
+
 		return $output;
 	}
 
