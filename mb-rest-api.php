@@ -102,7 +102,7 @@ class MB_Rest_API {
 			if ( ! in_array( $object->post_type, $meta_box['post_types'] ) ) {
 				continue;
 			}
-			error_log( "using meta-box " . $meta_box['title']  );
+			//error_log( "using meta-box " . $meta_box['title']  );
 
 			
 			//for each value passed in
@@ -232,3 +232,5 @@ class MB_Rest_API {
 
 $mb_rest_api = new MB_Rest_API;
 add_action( 'rest_api_init', array( $mb_rest_api, 'init' ) );
+
+?>
