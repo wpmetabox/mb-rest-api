@@ -116,8 +116,8 @@ class MB_Rest_API {
 								// if it's an array passed
 								if ( is_array($value) ){
 									// if multiple, 
-									if ($field['multiple']){
-										if ($field['clone'] ){
+									if (isset($field['multiple']) && $field['multiple']){
+										if (isset($field['clone']) && $field['clone']){
 											// clonable, write as csv
 											// **** UNTESTED ****
 											$strval = '';
