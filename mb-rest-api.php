@@ -77,11 +77,10 @@ class MB_Rest_API {
 	 * @param string $json Post meta values in JSON format.
 	 * @param object $object Post object.
 	 *
-	 * @return array
+	 * @return BOOLEAN
 	 */
 	public function update_post_meta_rest_api( $json, $object ) {
-		$output	= array();
-
+		$result = false;
 		//error_log( "json was" . var_export( $json, true )  );
 		
 		$json_lasterror = JSON_ERROR_NONE;
@@ -125,22 +124,28 @@ class MB_Rest_API {
 												if ($strval != '') $strval = $strval . ',';
 												$strval = $strval . $val;
 											}
-											update_post_meta( $object->ID, $field_name, strip_tags( $strval ) );
+											$result = (update_post_meta( $object->ID, $field_name, strip_tags( $strval ) ) !== false);
 										} else {
 											// and not clonable, then write as separate post_meta fields
+											$result = true;
 											delete_post_meta($object->ID, $field_name);
 											foreach ($value as $val) {
-												add_post_meta($object->ID, $field_name, $val);
+												if(add_post_meta($object->ID, $field_name, $val) === false){
+                                                    $result = false;
+                                                }
 											}
 										}
 									} else {
 										// something we did not deal with
 										error_log( "did not write meta-box field " . var_export( $field ) );
+										$result = false;
 									}
 									
-									$output[ $field_name ] = rwmb_get_value( $field['id'] ); // this just basically returns field.
 								} else {
-									$output[ $field_name ] = update_post_meta( $object->ID, $field_name, strip_tags( $value ) );
+									$result = true;
+									if (update_post_meta( $object->ID, $field_name, strip_tags( $value ) ) === false){
+                                        $result = false;
+                                    }
 								}
 								break;
 								
@@ -150,14 +155,15 @@ class MB_Rest_API {
 									$term_taxonomy_ids = wp_set_object_terms( $object->ID, $value['slug'], $field['taxonomy'] );
 									if (is_wp_error( $term_taxonomy_ids ) ) {
 										//what to do?
+										$result = false;
+									} else {
+										$result = true;
 									}
 								}
-								// read the whole field as it is now, as a get would give it
-								$output[ $field_name ] = rwmb_get_value( $field['id'] ); // this just basically returns field.
 								break;
 						}
-
-						do_action( 'mb_rest_api_set_meta', $object, $field, $output[ $field_name ] );
+						// push result as an 'updated' flag - good for everything except taxonomy ?
+						do_action( 'mb_rest_api_set_meta', $object, $field, $value, $result );
 						break; // we found the field, so loop to next value
 					}
 				}
@@ -165,7 +171,7 @@ class MB_Rest_API {
 			break; // don't waste time on other meta-boxes.
 		}
 		
-		return $output;
+		return true;
 	}
 
 	/**
