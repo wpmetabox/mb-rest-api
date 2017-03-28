@@ -156,6 +156,8 @@ class MB_Rest_API {
 								$output[ $field_name ] = rwmb_get_value( $field['id'] ); // this just basically returns field.
 								break;
 						}
+
+						do_action( 'mb_rest_api_set_meta', $object, $field, $output[ $field_name ] );
 						break; // we found the field, so loop to next value
 					}
 				}
