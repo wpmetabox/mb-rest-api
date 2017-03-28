@@ -80,15 +80,85 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	public function update_post_meta_rest_api( $json, $object ) {
-		$output    = array();
-		$post_data = json_decode( $json, true );
+		$output	= array();
 
-		if ( JSON_ERROR_NONE == json_last_error() ) {
-			foreach ( $post_data as $field_name => $value ) {
-				$output[ $field_name ] = update_post_meta( $object->ID, $field_name, strip_tags( $value ) );
-			}
+		//error_log( "json was" . var_export( $json, true )  );
+		
+		$json_lasterror = JSON_ERROR_NONE;
+		if ( !is_array($json) ){
+			$post_data = json_decode( $json, true );
+			$json_lasterror = json_last_error();
+		} else {
+			$post_data = $json;
 		}
+		
+		// identify meta-box
+		$meta_boxes = RWMB_Core::get_meta_boxes();
+		foreach ( $meta_boxes as $meta_box ) {
+			$meta_box = RW_Meta_Box::normalize( $meta_box );
+			//error_log( "examine meta-box " . $meta_box['title']  );
+			//error_log( "post_types " . var_export( $meta_box['post_types'], true )  );
+			//error_log( "need  " . var_export( $object->post_type, true )  );
+			if ( ! in_array( $object->post_type, $meta_box['post_types'] ) ) {
+				continue;
+			}
+			error_log( "using meta-box " . $meta_box['title']  );
 
+			
+			//for each value passed in
+			foreach ( $post_data as $field_name => $value ) {
+				// find it in the metabox (or not)
+				foreach ( $meta_box['fields'] as $field ) {
+					if ($field['id'] == $field_name){
+						switch ($field['type']){
+							default: // most types can just be written to post-meta
+                                    // unless they are multiple
+                                // if it's an array passed
+                                if ( is_array($value) ){
+                                    // if multiple, 
+                                    if ($field['multiple']){
+                                        if ($field['clone'] ){
+                                            // clonable, write as csv
+                                            $strval = '';
+                                            foreach ($value as $val) {
+                                                if ($strval != '') $strval = $strval . ',';
+                                                $strval = $strval . $val;
+                                            }
+                                            update_post_meta( $object->ID, $field_name, strip_tags( $strval ) );
+                                        } else {
+                                            // and not clonable, then write as separate post_meta fields
+                                            delete_post_meta($object->ID, $field_name);
+                                            foreach ($value as $val) {
+                                                add_post_meta($object->ID, $field_name, $val);
+                                            }
+                                        }
+                                    } else {
+                                        // something we did not deal with
+                                        error_log( "did not write meta-box field " . var_export( $field ) );
+                                    }
+                                    
+									$output[ $field_name ] = rwmb_get_value( $field['id'] ); // this just basically returns field.
+								} else {
+									$output[ $field_name ] = update_post_meta( $object->ID, $field_name, strip_tags( $value ) );
+								}
+								break;
+                                
+							case 'taxonomy': // expect { 'slug': 'name' }; ignore other fields
+								$term_taxonomy_ids = wp_set_object_terms( $object->ID, $value['slug'], $field['taxonomy'] );
+								if ( is_wp_error( $term_taxonomy_ids ) ) {
+									//what to do?
+								}
+								// read the whole field as it is now, as a get would give it
+								$output[ $field_name ] = rwmb_get_value( $field['id'] ); // this just basically returns field.
+								break;
+						}
+						break; // we found the field, so loop to next value
+					}
+				}
+			}
+			break; // don't waste time on other meta-boxes.
+		}
+		
 		return $output;
 	}
 
