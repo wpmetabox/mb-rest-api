@@ -119,6 +119,7 @@ class MB_Rest_API {
 									if ($field['multiple']){
 										if ($field['clone'] ){
 											// clonable, write as csv
+											// **** UNTESTED ****
 											$strval = '';
 											foreach ($value as $val) {
 												if ($strval != '') $strval = $strval . ',';
