@@ -112,37 +112,37 @@ class MB_Rest_API {
 					if ($field['id'] == $field_name){
 						switch ($field['type']){
 							default: // most types can just be written to post-meta
-                                    // unless they are multiple
-                                // if it's an array passed
-                                if ( is_array($value) ){
-                                    // if multiple, 
-                                    if ($field['multiple']){
-                                        if ($field['clone'] ){
-                                            // clonable, write as csv
-                                            $strval = '';
-                                            foreach ($value as $val) {
-                                                if ($strval != '') $strval = $strval . ',';
-                                                $strval = $strval . $val;
-                                            }
-                                            update_post_meta( $object->ID, $field_name, strip_tags( $strval ) );
-                                        } else {
-                                            // and not clonable, then write as separate post_meta fields
-                                            delete_post_meta($object->ID, $field_name);
-                                            foreach ($value as $val) {
-                                                add_post_meta($object->ID, $field_name, $val);
-                                            }
-                                        }
-                                    } else {
-                                        // something we did not deal with
-                                        error_log( "did not write meta-box field " . var_export( $field ) );
-                                    }
-                                    
+									// unless they are multiple
+								// if it's an array passed
+								if ( is_array($value) ){
+									// if multiple, 
+									if ($field['multiple']){
+										if ($field['clone'] ){
+											// clonable, write as csv
+											$strval = '';
+											foreach ($value as $val) {
+												if ($strval != '') $strval = $strval . ',';
+												$strval = $strval . $val;
+											}
+											update_post_meta( $object->ID, $field_name, strip_tags( $strval ) );
+										} else {
+											// and not clonable, then write as separate post_meta fields
+											delete_post_meta($object->ID, $field_name);
+											foreach ($value as $val) {
+												add_post_meta($object->ID, $field_name, $val);
+											}
+										}
+									} else {
+										// something we did not deal with
+										error_log( "did not write meta-box field " . var_export( $field ) );
+									}
+									
 									$output[ $field_name ] = rwmb_get_value( $field['id'] ); // this just basically returns field.
 								} else {
 									$output[ $field_name ] = update_post_meta( $object->ID, $field_name, strip_tags( $value ) );
 								}
 								break;
-                                
+								
 							case 'taxonomy': // expect { 'slug': 'name' }; ignore other fields
 								$term_taxonomy_ids = wp_set_object_terms( $object->ID, $value['slug'], $field['taxonomy'] );
 								if ( is_wp_error( $term_taxonomy_ids ) ) {
