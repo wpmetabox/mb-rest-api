@@ -19,7 +19,7 @@ include_once ABSPATH . 'wp-admin/includes/post.php';
 
 /**
  * Meta Box Rest API class
- * @package    Meta Box
+ * @package	Meta Box
  * @subpackage MB Rest API
  */
 class MB_Rest_API {
@@ -28,7 +28,7 @@ class MB_Rest_API {
 	 */
 	public function init() {
 		register_rest_field( $this->get_types(), 'meta_box', array(
-			'get_callback'    => array( $this, 'get_post_meta_rest_api' ),
+			'get_callback'	=> array( $this, 'get_post_meta_rest_api' ),
 			'update_callback' => array( $this, 'update_post_meta_rest_api' )
 		) );
 		register_rest_field( $this->get_types( 'taxonomy' ), 'meta_box', array(
@@ -44,7 +44,7 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	public function get_post_meta_rest_api( $object ) {
-		$output     = array();
+		$output	 = array();
 		$meta_boxes = RWMB_Core::get_meta_boxes();
 		foreach ( $meta_boxes as $meta_box ) {
 			$meta_box = RW_Meta_Box::normalize( $meta_box );
@@ -144,9 +144,12 @@ class MB_Rest_API {
 								break;
 								
 							case 'taxonomy': // expect { 'slug': 'name' }; ignore other fields
-								$term_taxonomy_ids = wp_set_object_terms( $object->ID, $value['slug'], $field['taxonomy'] );
-								if ( is_wp_error( $term_taxonomy_ids ) ) {
-									//what to do?
+								// only allow valid terms
+								if (term_exists( $value['slug'], $field['taxonomy'])){
+									$term_taxonomy_ids = wp_set_object_terms( $object->ID, $value['slug'], $field['taxonomy'] );
+									if (is_wp_error( $term_taxonomy_ids ) ) {
+										//what to do?
+									}
 								}
 								// read the whole field as it is now, as a get would give it
 								$output[ $field_name ] = rwmb_get_value( $field['id'] ); // this just basically returns field.
@@ -187,7 +190,7 @@ class MB_Rest_API {
 				if ( empty( $field['id'] ) ) {
 					continue;
 				}
-				$single                 = $field['clone'] || ! $field['multiple'];
+				$single				 = $field['clone'] || ! $field['multiple'];
 				$field_value = get_term_meta( $object['id'], $field['id'], $single );
 
 				/*
