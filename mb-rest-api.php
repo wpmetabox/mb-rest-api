@@ -4,23 +4,24 @@
  * Plugin URI: https://metabox.io
  * Description: Add Meta Box custom fields to WordPress Rest API.
  * Version: 1.1
- * Author: Rilwis
- * Author URI: http://www.deluxeblogtips.com
+ * Author: Anh Tran
+ * Author URI: http://deluxeblogtips.com
  * License: GPL2+
  * Text Domain: mb-rest-api
  * Domain Path: /languages/
+ *
+ * @package    Meta Box
+ * @subpackage MB Rest API
  */
 
 /**
- * Load necessary admin files
+ * Load necessary admin files.
  */
 include_once ABSPATH . 'wp-admin/includes/template.php';
 include_once ABSPATH . 'wp-admin/includes/post.php';
 
 /**
- * Meta Box Rest API class
- * @package	Meta Box
- * @subpackage MB Rest API
+ * Meta Box Rest API class.
  */
 class MB_Rest_API {
 	/**
@@ -28,8 +29,8 @@ class MB_Rest_API {
 	 */
 	public function init() {
 		register_rest_field( $this->get_types(), 'meta_box', array(
-			'get_callback'	=> array( $this, 'get_post_meta_rest_api' ),
-			'update_callback' => array( $this, 'update_post_meta_rest_api' )
+			'get_callback'    => array( $this, 'get_post_meta' ),
+			'update_callback' => array( $this, 'update_post_meta' ),
 		) );
 		register_rest_field( $this->get_types( 'taxonomy' ), 'meta_box', array(
 			'get_callback' => array( $this, 'get_term_meta' ),
@@ -43,15 +44,14 @@ class MB_Rest_API {
 	 *
 	 * @return array
 	 */
-	public function get_post_meta_rest_api( $object ) {
-		$output	 = array();
-		$meta_boxes = RWMB_Core::get_meta_boxes();
+	public function get_post_meta( $object ) {
+		$output     = array();
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->all();
 		foreach ( $meta_boxes as $meta_box ) {
-			$meta_box = RW_Meta_Box::normalize( $meta_box );
-			if ( ! in_array( $object['type'], $meta_box['post_types'] ) ) {
+			if ( ! in_array( $object['type'], $meta_box->post_types, true ) ) {
 				continue;
 			}
-			foreach ( $meta_box['fields'] as $field ) {
+			foreach ( $meta_box->fields as $field ) {
 				if ( empty( $field['id'] ) ) {
 					continue;
 				}
@@ -61,7 +61,7 @@ class MB_Rest_API {
 				 * Make sure values of file/image fields are always indexed 0, 1, 2, ...
 				 * @link https://github.com/malfborger/mb-rest-api/commit/31aa8fa445c188e8a71ebff80027acbcaa0fd268
 				 */
-				if ( is_array( $field_value ) && in_array( $field['type'], array( 'media', 'file', 'file_upload', 'file_advanced', 'image', 'image_upload', 'image_advanced', 'plupload_image', 'thickbox_image' ) ) ) {
+				if ( is_array( $field_value ) && in_array( $field['type'], array( 'media', 'file', 'file_upload', 'file_advanced', 'image', 'image_upload', 'image_advanced', 'plupload_image', 'thickbox_image' ), true ) ) {
 					$field_value = array_values( $field_value );
 				}
 				$output[ $field['id'] ] = $field_value;
@@ -74,110 +74,40 @@ class MB_Rest_API {
 	/**
 	 * Update post meta for the rest API.
 	 *
-	 * @param string $json Post meta values in JSON format.
-	 * @param object $object Post object.
-	 *
-	 * @return BOOLEAN
+	 * @param string|array $data   Post meta values in either JSON or array format.
+	 * @param object       $object Post object.
 	 */
-	public function update_post_meta_rest_api( $json, $object ) {
-		$result = false;
-		//error_log( "json was" . var_export( $json, true )  );
-		
-		$json_lasterror = JSON_ERROR_NONE;
-		if ( !is_array($json) ){
-			$post_data = json_decode( $json, true );
-			$json_lasterror = json_last_error();
-		} else {
-			$post_data = $json;
-		}
-		
-		// identify meta-box
-		$meta_boxes = RWMB_Core::get_meta_boxes();
-		foreach ( $meta_boxes as $meta_box ) {
-			$meta_box = RW_Meta_Box::normalize( $meta_box );
-			//error_log( "examine meta-box " . $meta_box['title']  );
-			//error_log( "post_types " . var_export( $meta_box['post_types'], true )  );
-			//error_log( "need  " . var_export( $object->post_type, true )  );
-			if ( ! in_array( $object->post_type, $meta_box['post_types'] ) ) {
-				continue;
+	public function update_post_meta( $data, $object ) {
+		if ( is_string( $data ) ) {
+			$data = json_decode( $data, true );
+			if ( JSON_ERROR_NONE === json_last_error() ) {
+				return;
 			}
-			//error_log( "using meta-box " . $meta_box['title']  );
+		}
 
-			
-			//for each value passed in
-			foreach ( $post_data as $field_name => $value ) {
-				// find it in the metabox (or not)
-				foreach ( $meta_box['fields'] as $field ) {
-					if ($field['id'] == $field_name){
-						switch ($field['type']){
-							default: // most types can just be written to post-meta
-									// unless they are multiple
-								// if it's an array passed
-								if ( is_array($value) ){
-									// if multiple, 
-									if (isset($field['multiple']) && $field['multiple']){
-										if (isset($field['clone']) && $field['clone']){
-											// clonable, write as csv
-											// **** UNTESTED ****
-											$strval = '';
-											foreach ($value as $val) {
-												if ($strval != '') $strval = $strval . ',';
-												$strval = $strval . $val;
-											}
-											$result = (update_post_meta( $object->ID, $field_name, strip_tags( $strval ) ) !== false);
-										} else {
-											// and not clonable, then write as separate post_meta fields
-											$result = true;
-											delete_post_meta($object->ID, $field_name);
-											foreach ($value as $val) {
-												if(add_post_meta($object->ID, $field_name, $val) === false){
-                                                    $result = false;
-                                                }
-											}
-										}
-									} else {
-										// something we did not deal with
-										error_log( "did not write meta-box field " . var_export( $field ) );
-										$result = false;
-									}
-									
-								} else {
-									$result = true;
-									if (update_post_meta( $object->ID, $field_name, strip_tags( $value ) ) === false){
-                                        $result = false;
-                                    }
-								}
-								break;
-								
-							case 'taxonomy': // expect { 'slug': 'name' }; ignore other fields
-								// only allow valid terms
-								if (term_exists( $value['slug'], $field['taxonomy'])){
-									$term_taxonomy_ids = wp_set_object_terms( $object->ID, $value['slug'], $field['taxonomy'] );
-									if (is_wp_error( $term_taxonomy_ids ) ) {
-										//what to do?
-										$result = false;
-									} else {
-										$result = true;
-									}
-								}
-								break;
-						}
-						// push result as an 'updated' flag - good for everything except taxonomy ?
-						do_action( 'mb_rest_api_set_meta', $object, $field, $value, $result );
-						break; // we found the field, so loop to next value
-					}
-				}
+		foreach ( $data as $field_id => $value ) {
+			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->post_type );
+			$old   = RWMB_Field::call( $field, 'raw_meta', $object->ID );
+			$new   = $value;
+
+			// Allow field class change the value.
+			if ( $field['clone'] ) {
+				$new = RWMB_Clone::value( $new, $old, $object->ID, $field );
+			} else {
+				$new = RWMB_Field::call( $field, 'value', $new, $old, $object->ID );
+				$new = RWMB_Field::filter( 'sanitize', $new, $field );
 			}
-			break; // don't waste time on other meta-boxes.
+			$new = RWMB_Field::filter( 'value', $new, $field, $old );
+
+			// Call defined method to save meta value, if there's no methods, call common one.
+			RWMB_Field::call( $field, 'save', $new, $old, $object->ID );
 		}
-		
-		return true;
 	}
 
 	/**
 	 * Get term meta for the rest API.
 	 *
-	 * @param array $object Term object
+	 * @param array $object Term object.
 	 *
 	 * @return array
 	 */
@@ -191,7 +121,7 @@ class MB_Rest_API {
 		$meta_boxes = MB_Term_Meta_Loader::$meta_boxes;
 
 		foreach ( $meta_boxes as $meta_box ) {
-			if ( ! in_array( $object['taxonomy'], (array) $meta_box['taxonomies'] ) ) {
+			if ( ! in_array( $object['taxonomy'], (array) $meta_box['taxonomies'], true ) ) {
 				continue;
 			}
 			$fields = RW_Meta_Box::normalize_fields( $meta_box['fields'] );
@@ -199,14 +129,14 @@ class MB_Rest_API {
 				if ( empty( $field['id'] ) ) {
 					continue;
 				}
-				$single				 = $field['clone'] || ! $field['multiple'];
+				$single      = $field['clone'] || ! $field['multiple'];
 				$field_value = get_term_meta( $object['id'], $field['id'], $single );
 
 				/*
 				 * Make sure values of file/image fields are always indexed 0, 1, 2, ...
 				 * @link https://github.com/malfborger/mb-rest-api/commit/31aa8fa445c188e8a71ebff80027acbcaa0fd268
 				 */
-				if ( is_array( $field_value ) && in_array( $field['type'], array( 'media', 'file', 'file_upload', 'file_advanced', 'image', 'image_upload', 'image_advanced', 'plupload_image', 'thickbox_image' ) ) ) {
+				if ( is_array( $field_value ) && in_array( $field['type'], array( 'media', 'file', 'file_upload', 'file_advanced', 'image', 'image_upload', 'image_advanced', 'plupload_image', 'thickbox_image' ), true ) ) {
 					$field_value = array_values( $field_value );
 				}
 				$output[ $field['id'] ] = $field_value;
@@ -219,13 +149,13 @@ class MB_Rest_API {
 	/**
 	 * Get supported types in Rest API.
 	 *
-	 * @param string $type 'post' or 'taxonomy'
+	 * @param string $type 'post' or 'taxonomy'.
 	 *
 	 * @return array
 	 */
 	protected function get_types( $type = 'post' ) {
 		$types = get_post_types( array(), 'objects' );
-		if ( 'taxonomy' == $type ) {
+		if ( 'taxonomy' === $type ) {
 			$types = get_taxonomies( array(), 'objects' );
 		}
 		foreach ( $types as $type => $object ) {
@@ -240,5 +170,3 @@ class MB_Rest_API {
 
 $mb_rest_api = new MB_Rest_API;
 add_action( 'rest_api_init', array( $mb_rest_api, 'init' ) );
-
-?>
