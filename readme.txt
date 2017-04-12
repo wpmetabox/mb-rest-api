@@ -1,10 +1,10 @@
 === MB Rest API ===
 Contributors: metabox, rilwis
-Donate link: http://www.deluxeblogtips.com/donate
+Donate link: https://paypal.me/anhtnt
 Tags: meta-box, custom fields, custom field, meta, meta-boxes, field, rest, rest api, api, wp api, wp rest api, json
 Requires at least: 4.1
-Tested up to: 4.7.2
-Stable tag: 1.1
+Tested up to: 4.7.3
+Stable tag: 1.2
 License: GPLv2 or later
 
 Add Meta Box custom fields to the WordPress REST API responses.
@@ -37,6 +37,9 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 == Screenshots ==
 
 == Changelog ==
+
+= 1.2 =
+* Improvement: The update callback now can accept array of params
 
 = 1.1 =
 * Improvement: Add update callback
