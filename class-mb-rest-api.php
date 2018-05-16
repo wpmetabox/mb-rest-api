@@ -78,21 +78,7 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->post_type );
-			$old   = RWMB_Field::call( $field, 'raw_meta', $object->ID );
-			$new   = $value;
-
-			// Allow field class change the value.
-			if ( $field['clone'] ) {
-				$new = RWMB_Clone::value( $new, $old, $object->ID, $field );
-			} else {
-				$new = RWMB_Field::call( $field, 'value', $new, $old, $object->ID );
-				$new = RWMB_Field::filter( 'sanitize', $new, $field );
-			}
-			$new = RWMB_Field::filter( 'value', $new, $field, $old );
-			$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object->ID );
-
-			// Call defined method to save meta value, if there's no methods, call common one.
-			RWMB_Field::call( $field, 'save', $new, $old, $object->ID );
+			$this->update_value( $field, $value, $object->ID );
 		}
 	}
 
@@ -137,21 +123,7 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->taxonomy );
-			$old   = RWMB_Field::call( $field, 'raw_meta', $object->term_id );
-			$new   = $value;
-
-			// Allow field class change the value.
-			if ( $field['clone'] ) {
-				$new = RWMB_Clone::value( $new, $old, $object->term_id, $field );
-			} else {
-				$new = RWMB_Field::call( $field, 'value', $new, $old, $object->term_id );
-				$new = RWMB_Field::filter( 'sanitize', $new, $field );
-			}
-			$new = RWMB_Field::filter( 'value', $new, $field, $old );
-			$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object->term_id );
-
-			// Call defined method to save meta value, if there's no methods, call common one.
-			RWMB_Field::call( $field, 'save', $new, $old, $object->term_id );
+			$this->update_value( $field, $value, $object->term_id );
 		}
 	}
 
@@ -191,22 +163,33 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, 'user' );
-			$old   = RWMB_Field::call( $field, 'raw_meta', $object->ID );
-			$new   = $value;
-
-			// Allow field class change the value.
-			if ( $field['clone'] ) {
-				$new = RWMB_Clone::value( $new, $old, $object->ID, $field );
-			} else {
-				$new = RWMB_Field::call( $field, 'value', $new, $old, $object->ID );
-				$new = RWMB_Field::filter( 'sanitize', $new, $field );
-			}
-			$new = RWMB_Field::filter( 'value', $new, $field, $old );
-			$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object->ID );
-
-			// Call defined method to save meta value, if there's no methods, call common one.
-			RWMB_Field::call( $field, 'save', $new, $old, $object->ID );
+			$this->update_value( $field, $value, $object->ID );
 		}
+	}
+	
+	/**
+	 * Update field value.
+	 * 
+	 * @param array $field     Field data.
+	 * @param mixed $value     Field value.
+	 * @param int   $object_id Object ID.
+	 */
+	protected function update_value( $field, $value, $object_id ) {
+		$old   = RWMB_Field::call( $field, 'raw_meta', $object_id );
+		$new   = $value;
+
+		// Allow field class change the value.
+		if ( $field['clone'] ) {
+			$new = RWMB_Clone::value( $new, $old, $object_id, $field );
+		} else {
+			$new = RWMB_Field::call( $field, 'value', $new, $old, $object_id );
+			$new = RWMB_Field::filter( 'sanitize', $new, $field );
+		}
+		$new = RWMB_Field::filter( 'value', $new, $field, $old );
+		$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object_id );
+
+		// Call defined method to save meta value, if there's no methods, call common one.
+		RWMB_Field::call( $field, 'save', $new, $old, $object_id );
 	}
 
 	/**
