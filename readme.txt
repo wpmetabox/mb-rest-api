@@ -3,8 +3,8 @@ Contributors: metabox, rilwis
 Donate link: https://paypal.me/anhtnt
 Tags: meta-box, custom fields, custom field, meta, meta-boxes, field, rest, rest api, api, wp api, wp rest api, json
 Requires at least: 4.1
-Tested up to: 4.9.5
-Stable tag: 1.3
+Tested up to: 4.9.8
+Stable tag: 1.3.1
 License: GPLv2 or later
 
 Add Meta Box custom fields to the WordPress REST API responses.
