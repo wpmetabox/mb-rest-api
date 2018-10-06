@@ -38,6 +38,9 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 
 == Changelog ==
 
+= 1.3.1 =
+* Removed fields that have no values from the response (divider, heading, etc.).
+
 = 1.3 =
 * Added fully support for terms and users. Both get and update meta values.
 

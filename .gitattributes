@@ -1,7 +1,0 @@
-# Normalize EOL=LF
-* text=auto
-
-# Ignore files when export
-*.json export-ignore
-.gitattributes export-ignore
-readme.md export-ignore
