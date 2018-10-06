@@ -28,21 +28,45 @@ class MB_Rest_API {
 	);
 
 	/**
+	 * List of fields that have no values.
+	 *
+	 * @var array
+	 */
+	protected $no_value_fields = array(
+		'heading',
+		'custom_html',
+		'divider',
+		'button',
+	);
+
+	/**
 	 * Register new field 'meta_box' for all meta box's fields.
 	 */
 	public function init() {
-		register_rest_field( $this->get_types(), 'meta_box', array(
-			'get_callback'    => array( $this, 'get_post_meta' ),
-			'update_callback' => array( $this, 'update_post_meta' ),
-		) );
-		register_rest_field( $this->get_types( 'taxonomy' ), 'meta_box', array(
-			'get_callback'    => array( $this, 'get_term_meta' ),
-			'update_callback' => array( $this, 'update_term_meta' ),
-		) );
-		register_rest_field( 'user', 'meta_box', array(
-			'get_callback'    => array( $this, 'get_user_meta' ),
-			'update_callback' => array( $this, 'update_user_meta' ),
-		) );
+		register_rest_field(
+			$this->get_types(),
+			'meta_box',
+			array(
+				'get_callback'    => array( $this, 'get_post_meta' ),
+				'update_callback' => array( $this, 'update_post_meta' ),
+			)
+		);
+		register_rest_field(
+			$this->get_types( 'taxonomy' ),
+			'meta_box',
+			array(
+				'get_callback'    => array( $this, 'get_term_meta' ),
+				'update_callback' => array( $this, 'update_term_meta' ),
+			)
+		);
+		register_rest_field(
+			'user',
+			'meta_box',
+			array(
+				'get_callback'    => array( $this, 'get_user_meta' ),
+				'update_callback' => array( $this, 'update_user_meta' ),
+			)
+		);
 	}
 
 	/**
@@ -95,9 +119,11 @@ class MB_Rest_API {
 			return $output;
 		}
 
-		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array(
-			'object_type' => 'term',
-		) );
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by(
+			array(
+				'object_type' => 'term',
+			)
+		);
 		foreach ( $meta_boxes as $key => $meta_box ) {
 			if ( ! in_array( $object['taxonomy'], $meta_box->taxonomies, true ) ) {
 				unset( $meta_boxes[ $key ] );
@@ -140,9 +166,11 @@ class MB_Rest_API {
 			return $output;
 		}
 
-		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array(
-			'object_type' => 'user',
-		) );
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by(
+			array(
+				'object_type' => 'user',
+			)
+		);
 
 		return $this->get_values( $meta_boxes, $object['id'], array( 'object_type' => 'user' ) );
 	}
@@ -166,17 +194,17 @@ class MB_Rest_API {
 			$this->update_value( $field, $value, $object->ID );
 		}
 	}
-	
+
 	/**
 	 * Update field value.
-	 * 
+	 *
 	 * @param array $field     Field data.
 	 * @param mixed $value     Field value.
 	 * @param int   $object_id Object ID.
 	 */
 	protected function update_value( $field, $value, $object_id ) {
-		$old   = RWMB_Field::call( $field, 'raw_meta', $object_id );
-		$new   = $value;
+		$old = RWMB_Field::call( $field, 'raw_meta', $object_id );
+		$new = $value;
 
 		// Allow field class change the value.
 		if ( $field['clone'] ) {
@@ -224,25 +252,36 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	protected function get_values( $meta_boxes, $object_id, $args = array() ) {
-		$values = array();
+		$fields = array();
 		foreach ( $meta_boxes as $meta_box ) {
-			foreach ( $meta_box->fields as $field ) {
-				if ( empty( $field['id'] ) ) {
-					continue;
-				}
-				$field_value = rwmb_get_value( $field['id'], $args, $object_id );
+			$fields = array_merge( $fields, $meta_box->fields );
+		}
+		$fields = array_filter( $fields, array( $this, 'has_value' ) );
 
-				/*
-				 * Make sure values of file/image fields are always indexed 0, 1, 2, ...
-				 * @link https://github.com/wpmetabox/mb-rest-api/commit/31aa8fa445c188e8a71ebff80027acbcaa0fd268
-				 */
-				if ( is_array( $field_value ) && in_array( $field['type'], $this->media_fields, true ) ) {
-					$field_value = array_values( $field_value );
-				}
-				$values[ $field['id'] ] = $field_value;
+		$values = array();
+		foreach ( $fields as $field ) {
+			$value = rwmb_get_value( $field['id'], $args, $object_id );
+
+			/*
+			 * Make sure values of file/image fields are always indexed 0, 1, 2, ...
+			 * @link https://github.com/wpmetabox/mb-rest-api/commit/31aa8fa445c188e8a71ebff80027acbcaa0fd268
+			 */
+			if ( is_array( $value ) && in_array( $field['type'], $this->media_fields, true ) ) {
+				$value = array_values( $value );
 			}
+			$values[ $field['id'] ] = $value;
 		}
 
 		return $values;
+	}
+
+	/**
+	 * Check if a field has values.
+	 *
+	 * @param array $field Field settings.
+	 * @return bool
+	 */
+	public function has_value( $field ) {
+		return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
 	}
 }
