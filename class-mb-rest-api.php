@@ -95,7 +95,7 @@ class MB_Rest_API {
 	public function update_post_meta( $data, $object ) {
 		if ( is_string( $data ) ) {
 			$data = json_decode( $data, true );
-			if ( JSON_ERROR_NONE === json_last_error() ) {
+			if ( JSON_ERROR_NONE !== json_last_error() ) {
 				return;
 			}
 		}
@@ -142,13 +142,13 @@ class MB_Rest_API {
 	public function update_term_meta( $data, $object ) {
 		if ( is_string( $data ) ) {
 			$data = json_decode( $data, true );
-			if ( JSON_ERROR_NONE === json_last_error() ) {
+			if ( JSON_ERROR_NONE !== json_last_error() ) {
 				return;
 			}
 		}
 
 		foreach ( $data as $field_id => $value ) {
-			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->taxonomy );
+			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->taxonomy, 'term' );
 			$this->update_value( $field, $value, $object->term_id );
 		}
 	}
@@ -184,7 +184,7 @@ class MB_Rest_API {
 	public function update_user_meta( $data, $object ) {
 		if ( is_string( $data ) ) {
 			$data = json_decode( $data, true );
-			if ( JSON_ERROR_NONE === json_last_error() ) {
+			if ( JSON_ERROR_NONE !== json_last_error() ) {
 				return;
 			}
 		}
