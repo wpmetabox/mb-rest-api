@@ -53,12 +53,12 @@ class MB_Rest_API {
 		);
 
 		$taxonomies = $this->get_types( 'taxonomy' );
-        if ( in_array( 'post_tag', $taxonomies, true ) ) {
-            $post_tag_key = array_search( 'post_tag', $taxonomies );
-            $taxonomies[$post_tag_key] = 'tag';
-        }
+		if ( in_array( 'post_tag', $taxonomies, true ) ) {
+			$post_tag_key                = array_search( 'post_tag', $taxonomies, true );
+			$taxonomies[ $post_tag_key ] = 'tag';
+		}
 		register_rest_field(
-            $taxonomies,
+			$taxonomies,
 			'meta_box',
 			array(
 				'get_callback'    => array( $this, 'get_term_meta' ),

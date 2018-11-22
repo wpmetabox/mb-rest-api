@@ -21,5 +21,5 @@ require_once ABSPATH . 'wp-admin/includes/post.php';
 // Load plugin main class.
 require_once dirname( __FILE__ ) . '/class-mb-rest-api.php';
 
-$mb_rest_api = new MB_Rest_API;
+$mb_rest_api = new MB_Rest_API();
 add_action( 'rest_api_init', array( $mb_rest_api, 'init' ) );
