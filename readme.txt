@@ -1,10 +1,10 @@
 === MB Rest API ===
 Contributors: metabox, rilwis
-Donate link: https://paypal.me/anhtnt
+Donate link: https://metabox.io/pricing/
 Tags: meta-box, custom fields, custom field, meta, meta-boxes, field, rest, rest api, api, wp api, wp rest api, json
 Requires at least: 4.1
-Tested up to: 4.9.8
-Stable tag: 1.3.2
+Tested up to: 5.1.1
+Stable tag: 1.3.3
 License: GPLv2 or later
 
 Add Meta Box custom fields to the WordPress REST API responses.
@@ -37,6 +37,9 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 == Screenshots ==
 
 == Changelog ==
+
+= 1.3.3 =
+* Fixed not updating user meta.
 
 = 1.3.2 =
 * Fixed custom fields for terms not saving for POST request. Props Mirza Pandzo.
