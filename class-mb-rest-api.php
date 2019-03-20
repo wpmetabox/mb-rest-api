@@ -196,7 +196,7 @@ class MB_Rest_API {
 		}
 
 		foreach ( $data as $field_id => $value ) {
-			$field = rwmb_get_registry( 'field' )->get( $field_id, 'user' );
+			$field = rwmb_get_registry( 'field' )->get( $field_id, 'user', 'user' );
 			$this->update_value( $field, $value, $object->ID );
 		}
 	}
