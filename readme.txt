@@ -4,7 +4,7 @@ Donate link: https://metabox.io/pricing/
 Tags: meta-box, custom fields, custom field, meta, meta-boxes, field, rest, rest api, api, wp api, wp rest api, json
 Requires at least: 4.1
 Tested up to: 5.1.1
-Stable tag: 1.3.3
+Stable tag: 1.3.4
 License: GPLv2 or later
 
 Add Meta Box custom fields to the WordPress REST API responses.
@@ -37,6 +37,10 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 == Screenshots ==
 
 == Changelog ==
+
+= 1.3.4 =
+* Make it safe to include into AIO plugin.
+* Removed _state from returned value for groups.
 
 = 1.3.3 =
 * Fixed not updating user meta.
