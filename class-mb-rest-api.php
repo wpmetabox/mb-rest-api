@@ -267,14 +267,8 @@ class MB_Rest_API {
 		$values = array();
 		foreach ( $fields as $field ) {
 			$value = rwmb_get_value( $field['id'], $args, $object_id );
+			$value = $this->normalize_value( $field, $value );
 
-			/*
-			 * Make sure values of file/image fields are always indexed 0, 1, 2, ...
-			 * @link https://github.com/wpmetabox/mb-rest-api/commit/31aa8fa445c188e8a71ebff80027acbcaa0fd268
-			 */
-			if ( is_array( $value ) && in_array( $field['type'], $this->media_fields, true ) ) {
-				$value = array_values( $value );
-			}
 			$values[ $field['id'] ] = $value;
 		}
 
@@ -289,5 +283,66 @@ class MB_Rest_API {
 	 */
 	public function has_value( $field ) {
 		return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
+	}
+
+	/**
+	 * Normalize group value.
+	 *
+	 * @param  array $field Field settings.
+	 * @param  mixed $value Field value.
+	 * @return mixed
+	 */
+	private function normalize_value( $field, $value ) {
+		$value = $this->normalize_group_value( $field, $value );
+		$value = $this->normalize_media_value( $field, $value );
+
+		return $value;
+	}
+
+	/**
+	 * Normalize group value.
+	 *
+	 * @param  array $field Field settings.
+	 * @param  mixed $value Field value.
+	 * @return mixed
+	 */
+	private function normalize_group_value( $field, $value ) {
+		if ( 'group' !== $field['type'] ) {
+			return $value;
+		}
+		if ( isset( $value['_state'] ) ) {
+			unset( $value['_state'] );
+		}
+
+		foreach ( $field['fields'] as $subfield ) {
+			if ( empty( $subfield['id'] ) || empty( $value[ $subfield['id'] ] ) ) {
+				continue;
+			}
+			$subvalue = $value[ $subfield['id'] ];
+			$subvalue = $this->normalize_value( $subfield, $subvalue );
+
+			$value[ $subfield['id'] ] = $subvalue;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Normalize media value.
+	 *
+	 * @param  array $field Field settings.
+	 * @param  mixed $value Field value.
+	 * @return mixed
+	 */
+	private function normalize_media_value( $field, $value ) {
+		/*
+		 * Make sure values of file/image fields are always indexed 0, 1, 2, ...
+		 * @link https://github.com/wpmetabox/mb-rest-api/commit/31aa8fa445c188e8a71ebff80027acbcaa0fd268
+		 */
+		if ( is_array( $value ) && in_array( $field['type'], $this->media_fields, true ) ) {
+			$value = array_values( $value );
+		}
+
+		return $value;
 	}
 }
