@@ -110,6 +110,8 @@ class MB_Rest_API {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->post_type );
 			$this->update_value( $field, $value, $object->ID );
 		}
+
+		do_action( 'rwmb_after_save_post', $object->ID );
 	}
 
 	/**
@@ -157,6 +159,8 @@ class MB_Rest_API {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->taxonomy, 'term' );
 			$this->update_value( $field, $value, $object->term_id );
 		}
+
+		do_action( 'rwmb_after_save_post', $object->term_id );
 	}
 
 	/**
@@ -199,6 +203,8 @@ class MB_Rest_API {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, 'user', 'user' );
 			$this->update_value( $field, $value, $object->ID );
 		}
+
+		do_action( 'rwmb_after_save_post', $object->ID );
 	}
 
 	/**
