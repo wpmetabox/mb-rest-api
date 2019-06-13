@@ -3,7 +3,7 @@
  * Plugin Name: MB Rest API
  * Plugin URI:  https://metabox.io/plugins/mb-rest-api/
  * Description: Add Meta Box custom fields to WordPress Rest API.
- * Version:     1.3.4
+ * Version:     1.3.5
  * Author:      MetaBox.io
  * Author URI:  https://metabox.io
  * License:     GPL2+
