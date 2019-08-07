@@ -216,16 +216,8 @@ class MB_Rest_API {
 	 */
 	protected function update_value( $field, $value, $object_id ) {
 		$old = RWMB_Field::call( $field, 'raw_meta', $object_id );
-		$new = $value;
 
-		// Allow field class change the value.
-		if ( $field['clone'] ) {
-			$new = RWMB_Clone::value( $new, $old, $object_id, $field );
-		} else {
-			$new = RWMB_Field::call( $field, 'value', $new, $old, $object_id );
-			$new = RWMB_Field::filter( 'sanitize', $new, $field );
-		}
-		$new = RWMB_Field::filter( 'value', $new, $field, $old );
+		$new = RWMB_Field::process_value( $value, $object_id, $field );
 		$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object_id );
 
 		// Call defined method to save meta value, if there's no methods, call common one.
