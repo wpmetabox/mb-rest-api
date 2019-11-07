@@ -123,9 +123,6 @@ class MB_Rest_API {
 	 */
 	public function get_term_meta( $object ) {
 		$output = array();
-		if ( ! class_exists( 'MB_Term_Meta_Box' ) ) {
-			return $output;
-		}
 
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by(
 			array(
@@ -172,9 +169,6 @@ class MB_Rest_API {
 	 */
 	public function get_user_meta( $object ) {
 		$output = array();
-		if ( ! class_exists( 'MB_User_Meta_Box' ) ) {
-			return $output;
-		}
 
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by(
 			array(
