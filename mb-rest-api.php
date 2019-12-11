@@ -21,6 +21,7 @@ if ( ! function_exists( 'mb_rest_api_load' ) ) {
 	// Load necessary admin files.
 	require_once ABSPATH . 'wp-admin/includes/template.php';
 	require_once ABSPATH . 'wp-admin/includes/post.php';
+	require_once ABSPATH . 'wp-admin/includes/comment.php';
 
 	add_action( 'init', 'mb_rest_api_load', 5 );
 

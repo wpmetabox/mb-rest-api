@@ -73,6 +73,15 @@ class MB_Rest_API {
 				'update_callback' => array( $this, 'update_user_meta' ),
 			)
 		);
+		// comment
+		register_rest_field(
+			'comment',
+			'meta_box',
+			array(
+				'get_callback'    => array( $this, 'get_comment_meta' ),
+				'update_callback' => array( $this, 'update_comment_meta' ),
+			)
+		);
 	}
 
 	/**
@@ -193,6 +202,45 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, 'user', 'user' );
+			$this->update_value( $field, $value, $object->ID );
+		}
+
+		do_action( 'rwmb_after_save_post', $object->ID );
+	}
+
+	/**
+	 * Get comment meta for the rest API.
+	 *
+	 * @param array $object Comment object.
+	 *
+	 * @return array
+	 */
+	public function get_comment_meta( $object ) {
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array( 'object_type' => 'comment' ) );
+		foreach ( $meta_boxes as $key => $meta_box ) {
+			if ( ! in_array( $object['type'], $meta_box->post_types, true ) ) {
+				unset( $meta_boxes[ $key ] );
+			}
+		}
+		return $this->get_values( $meta_boxes, $object['id'], array( 'object_type' => 'comment' ) );
+	}
+
+	/**
+	 * Update comment meta for the rest API.
+	 *
+	 * @param string|array $data   Comment meta values in either JSON or array format.
+	 * @param object       $object Comment object.
+	 */
+	public function update_comment_meta( $data, $object ) {
+		if ( is_string( $data ) ) {
+			$data = json_decode( $data, true );
+			if ( JSON_ERROR_NONE !== json_last_error() ) {
+				return;
+			}
+		}
+
+		foreach ( $data as $field_id => $value ) {
+			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->post_type );
 			$this->update_value( $field, $value, $object->ID );
 		}
 
