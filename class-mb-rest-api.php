@@ -73,7 +73,6 @@ class MB_Rest_API {
 				'update_callback' => array( $this, 'update_user_meta' ),
 			)
 		);
-		// comment
 		register_rest_field(
 			'comment',
 			'meta_box',
@@ -108,12 +107,7 @@ class MB_Rest_API {
 	 * @param object       $object Post object.
 	 */
 	public function update_post_meta( $data, $object ) {
-		if ( is_string( $data ) ) {
-			$data = json_decode( $data, true );
-			if ( JSON_ERROR_NONE !== json_last_error() ) {
-				return;
-			}
-		}
+		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->post_type );
@@ -153,12 +147,7 @@ class MB_Rest_API {
 	 * @param object       $object Term object.
 	 */
 	public function update_term_meta( $data, $object ) {
-		if ( is_string( $data ) ) {
-			$data = json_decode( $data, true );
-			if ( JSON_ERROR_NONE !== json_last_error() ) {
-				return;
-			}
-		}
+		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->taxonomy, 'term' );
@@ -193,12 +182,7 @@ class MB_Rest_API {
 	 * @param object       $object User object.
 	 */
 	public function update_user_meta( $data, $object ) {
-		if ( is_string( $data ) ) {
-			$data = json_decode( $data, true );
-			if ( JSON_ERROR_NONE !== json_last_error() ) {
-				return;
-			}
-		}
+		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, 'user', 'user' );
@@ -227,12 +211,7 @@ class MB_Rest_API {
 	 * @param object       $object Comment object.
 	 */
 	public function update_comment_meta( $data, $object ) {
-		if ( is_string( $data ) ) {
-			$data = json_decode( $data, true );
-			if ( JSON_ERROR_NONE !== json_last_error() ) {
-				return;
-			}
-		}
+		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, 'comment', 'comment' );
