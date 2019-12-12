@@ -217,11 +217,6 @@ class MB_Rest_API {
 	 */
 	public function get_comment_meta( $object ) {
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array( 'object_type' => 'comment' ) );
-		foreach ( $meta_boxes as $key => $meta_box ) {
-			if ( ! in_array( $object['type'], $meta_box->post_types, true ) ) {
-				unset( $meta_boxes[ $key ] );
-			}
-		}
 		return $this->get_values( $meta_boxes, $object['id'], array( 'object_type' => 'comment' ) );
 	}
 
@@ -240,7 +235,7 @@ class MB_Rest_API {
 		}
 
 		foreach ( $data as $field_id => $value ) {
-			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->post_type );
+			$field = rwmb_get_registry( 'field' )->get( $field_id, 'comment', 'comment' );
 			$this->update_value( $field, $value, $object->ID );
 		}
 
