@@ -3,8 +3,8 @@ Contributors: metabox, rilwis
 Donate link: https://metabox.io/pricing/
 Tags: meta-box, custom fields, custom field, meta, meta-boxes, field, rest, rest api, api, wp api, wp rest api, json
 Requires at least: 4.1
-Tested up to: 5.2.4
-Stable tag: 1.3.6
+Tested up to: 5.3
+Stable tag: 1.4.0
 License: GPLv2 or later
 
 Add Meta Box custom fields to the WordPress REST API responses.
@@ -12,8 +12,6 @@ Add Meta Box custom fields to the WordPress REST API responses.
 == Description ==
 
 [**MB Rest API**](https://metabox.io/plugins/mb-rest-api/) is an extension of the [Meta Box](https://metabox.io) plugin which pulls all custom fields' values (meta value) from posts, pages, custom post types, terms into the WordPress REST API responses under 'meta_box' key.
-
-This plugin requires the [WordPress REST API v2](https://wordpress.org/plugins/rest-api/) and [Meta Box v4.8.5+](https://metabox.io).
 
 ### Plugin Links
 
@@ -37,6 +35,12 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 == Screenshots ==
 
 == Changelog ==
+
+= 1.4.0 - 2019-12-12 =
+
+**Added**
+
+- Add support for comment meta. Requires MB Comment Meta plugin.
 
 = 1.3.6 - 2019-11-07 =
 
