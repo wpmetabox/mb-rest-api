@@ -92,11 +92,10 @@ class MB_Rest_API {
 	 */
 	public function get_post_meta( $object ) {
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array( 'object_type' => 'post' ) );
-		foreach ( $meta_boxes as $key => $meta_box ) {
-			if ( ! in_array( $object['type'], $meta_box->post_types, true ) ) {
-				unset( $meta_boxes[ $key ] );
-			}
-		}
+		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $object ) {
+			return in_array( $object['type'], $meta_box->post_types, true );
+		} );
+
 		return $this->get_values( $meta_boxes, $object['id'] );
 	}
 
@@ -125,17 +124,10 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	public function get_term_meta( $object ) {
-		$output     = array();
-		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by(
-			array(
-				'object_type' => 'term',
-			)
-		);
-		foreach ( $meta_boxes as $key => $meta_box ) {
-			if ( ! in_array( $object['taxonomy'], $meta_box->taxonomies, true ) ) {
-				unset( $meta_boxes[ $key ] );
-			}
-		}
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array( 'object_type' => 'term' ) );
+		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $object ) {
+			return in_array( $object['taxonomy'], $meta_box->taxonomies, true );
+		} );
 
 		return $this->get_values( $meta_boxes, $object['id'], array( 'object_type' => 'term' ) );
 	}
@@ -165,13 +157,7 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	public function get_user_meta( $object ) {
-		$output     = array();
-		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by(
-			array(
-				'object_type' => 'user',
-			)
-		);
-
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array( 'object_type' => 'user' ) );
 		return $this->get_values( $meta_boxes, $object['id'], array( 'object_type' => 'user' ) );
 	}
 
@@ -274,7 +260,11 @@ class MB_Rest_API {
 		foreach ( $meta_boxes as $meta_box ) {
 			$fields = array_merge( $fields, $meta_box->fields );
 		}
-		$fields = array_filter( $fields, array( $this, 'has_value' ) );
+
+		// Remove fields with no values.
+		$fields = array_filter( $fields, function( $field ) {
+			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
+		} );
 
 		$values = array();
 		foreach ( $fields as $field ) {
@@ -288,17 +278,7 @@ class MB_Rest_API {
 	}
 
 	/**
-	 * Check if a field has values.
-	 *
-	 * @param array $field Field settings.
-	 * @return bool
-	 */
-	public function has_value( $field ) {
-		return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
-	}
-
-	/**
-	 * Normalize group value.
+	 * Normalize value.
 	 *
 	 * @param  array $field Field settings.
 	 * @param  mixed $value Field value.
