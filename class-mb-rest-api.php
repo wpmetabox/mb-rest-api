@@ -93,7 +93,7 @@ class MB_Rest_API {
 	public function get_post_meta( $object ) {
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array( 'object_type' => 'post' ) );
 		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $object ) {
-			return in_array( $object['type'], $meta_box->post_types, true );
+			return empty( $object['type'] ) || in_array( $object['type'], $meta_box->post_types, true );
 		} );
 
 		return $this->get_values( $meta_boxes, $object['id'] );
@@ -126,7 +126,7 @@ class MB_Rest_API {
 	public function get_term_meta( $object ) {
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array( 'object_type' => 'term' ) );
 		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $object ) {
-			return in_array( $object['taxonomy'], $meta_box->taxonomies, true );
+			return empty( $object['taxonomy'] ) || in_array( $object['taxonomy'], $meta_box->taxonomies, true );
 		} );
 
 		return $this->get_values( $meta_boxes, $object['id'], array( 'object_type' => 'term' ) );
