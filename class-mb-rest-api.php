@@ -1,21 +1,6 @@
 <?php
-/**
- * The REST API main class.
- *
- * @package    Meta Box
- * @subpackage MB Rest API
- */
-
-/**
- * Meta Box Rest API class.
- */
 class MB_Rest_API {
-	/**
-	 * List of media fields to filter.
-	 *
-	 * @var array
-	 */
-	protected $media_fields = array(
+	protected $media_fields = [
 		'media',
 		'file',
 		'file_upload',
@@ -25,31 +10,23 @@ class MB_Rest_API {
 		'image_advanced',
 		'plupload_image',
 		'thickbox_image',
-	);
+	];
 
-	/**
-	 * List of fields that have no values.
-	 *
-	 * @var array
-	 */
-	protected $no_value_fields = array(
+	protected $no_value_fields = [
 		'heading',
 		'custom_html',
 		'divider',
 		'button',
-	);
+	];
 
-	/**
-	 * Register new field 'meta_box' for all meta box's fields.
-	 */
 	public function init() {
 		register_rest_field(
 			$this->get_types(),
 			'meta_box',
-			array(
-				'get_callback'    => array( $this, 'get_post_meta' ),
-				'update_callback' => array( $this, 'update_post_meta' ),
-			)
+			[
+				'get_callback'    => [ $this, 'get_post_meta' ],
+				'update_callback' => [ $this, 'update_post_meta' ],
+			]
 		);
 
 		$taxonomies = $this->get_types( 'taxonomy' );
@@ -60,26 +37,26 @@ class MB_Rest_API {
 		register_rest_field(
 			$taxonomies,
 			'meta_box',
-			array(
-				'get_callback'    => array( $this, 'get_term_meta' ),
-				'update_callback' => array( $this, 'update_term_meta' ),
-			)
+			[
+				'get_callback'    => [ $this, 'get_term_meta' ],
+				'update_callback' => [ $this, 'update_term_meta' ],
+			]
 		);
 		register_rest_field(
 			'user',
 			'meta_box',
-			array(
-				'get_callback'    => array( $this, 'get_user_meta' ),
-				'update_callback' => array( $this, 'update_user_meta' ),
-			)
+			[
+				'get_callback'    => [ $this, 'get_user_meta' ],
+				'update_callback' => [ $this, 'update_user_meta' ],
+			]
 		);
 		register_rest_field(
 			'comment',
 			'meta_box',
-			array(
-				'get_callback'    => array( $this, 'get_comment_meta' ),
-				'update_callback' => array( $this, 'update_comment_meta' ),
-			)
+			[
+				'get_callback'    => [ $this, 'get_comment_meta' ],
+				'update_callback' => [ $this, 'update_comment_meta' ],
+			]
 		);
 	}
 
@@ -91,7 +68,7 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	public function get_post_meta( $object ) {
-		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array( 'object_type' => 'post' ) );
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'post' ] );
 		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $object ) {
 			return empty( $object['type'] ) || in_array( $object['type'], $meta_box->post_types, true );
 		} );
@@ -124,12 +101,12 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	public function get_term_meta( $object ) {
-		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array( 'object_type' => 'term' ) );
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'term' ] );
 		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $object ) {
 			return empty( $object['taxonomy'] ) || in_array( $object['taxonomy'], $meta_box->taxonomies, true );
 		} );
 
-		return $this->get_values( $meta_boxes, $object['id'], array( 'object_type' => 'term' ) );
+		return $this->get_values( $meta_boxes, $object['id'], [ 'object_type' => 'term' ] );
 	}
 
 	/**
@@ -157,8 +134,8 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	public function get_user_meta( $object ) {
-		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array( 'object_type' => 'user' ) );
-		return $this->get_values( $meta_boxes, $object['id'], array( 'object_type' => 'user' ) );
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'user' ] );
+		return $this->get_values( $meta_boxes, $object['id'], [ 'object_type' => 'user' ] );
 	}
 
 	/**
@@ -186,8 +163,8 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	public function get_comment_meta( $object ) {
-		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( array( 'object_type' => 'comment' ) );
-		return $this->get_values( $meta_boxes, $object['id'], array( 'object_type' => 'comment' ) );
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'comment' ] );
+		return $this->get_values( $meta_boxes, $object['id'], [ 'object_type' => 'comment' ] );
 	}
 
 	/**
@@ -233,9 +210,9 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	protected function get_types( $type = 'post' ) {
-		$types = get_post_types( array(), 'objects' );
+		$types = get_post_types( [], 'objects' );
 		if ( 'taxonomy' === $type ) {
-			$types = get_taxonomies( array(), 'objects' );
+			$types = get_taxonomies( [], 'objects' );
 		}
 		foreach ( $types as $type => $object ) {
 			if ( empty( $object->show_in_rest ) ) {
@@ -256,8 +233,8 @@ class MB_Rest_API {
 	 *
 	 * @return array
 	 */
-	protected function get_values( $meta_boxes, $object_id, $args = array() ) {
-		$fields = array();
+	protected function get_values( $meta_boxes, $object_id, $args = [] ) {
+		$fields = [];
 		foreach ( $meta_boxes as $meta_box ) {
 			$fields = array_merge( $fields, $meta_box->fields );
 		}
@@ -267,7 +244,7 @@ class MB_Rest_API {
 			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
 		} );
 
-		$values = array();
+		$values = [];
 		foreach ( $fields as $field ) {
 			$value = rwmb_get_value( $field['id'], $args, $object_id );
 			$value = $this->normalize_value( $field, $value );
