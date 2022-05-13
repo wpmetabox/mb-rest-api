@@ -68,12 +68,18 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	public function get_post_meta( $object ) {
+		$post_id   = $object['id'];
+		$post_type = get_post_type( $post_id );
+		if ( ! $post_type ) {
+			return [];
+		}
+
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'post' ] );
-		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $object ) {
-			return empty( $object['type'] ) || in_array( $object['type'], $meta_box->post_types, true );
+		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $post_type ) {
+			return in_array( $post_type, $meta_box->post_types, true );
 		} );
 
-		return $this->get_values( $meta_boxes, $object['id'] );
+		return $this->get_values( $meta_boxes, $post_id );
 	}
 
 	/**
@@ -101,12 +107,18 @@ class MB_Rest_API {
 	 * @return array
 	 */
 	public function get_term_meta( $object ) {
+		$term_id = $object['id'];
+		$term    = get_term( $term_id );
+		if ( is_wp_error( $term ) || ! $term ) {
+			return [];
+		}
+
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'term' ] );
-		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $object ) {
-			return empty( $object['taxonomy'] ) || in_array( $object['taxonomy'], $meta_box->taxonomies, true );
+		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $term ) {
+			return in_array( $term->taxonomy, $meta_box->taxonomies, true );
 		} );
 
-		return $this->get_values( $meta_boxes, $object['id'], [ 'object_type' => 'term' ] );
+		return $this->get_values( $meta_boxes, $term_id, [ 'object_type' => 'term' ] );
 	}
 
 	/**
