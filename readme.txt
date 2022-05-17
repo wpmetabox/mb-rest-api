@@ -3,8 +3,9 @@ Contributors: metabox, rilwis
 Donate link: https://metabox.io/pricing/
 Tags: meta-box, custom fields, custom field, meta, meta-boxes, field, rest, rest api, api, wp api, wp rest api, json
 Requires at least: 4.1
-Tested up to: 5.3
-Stable tag: 1.4.0
+Tested up to: 5.9.3
+Stable tag: 1.4.1
+Requires PHP: 5.6
 License: GPLv2 or later
 
 Add Meta Box custom fields to the WordPress REST API responses.
@@ -36,16 +37,13 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 
 == Changelog ==
 
+= 1.4.1 - 2022-05-17 =
+- Fix not working with `_filter`.
+
 = 1.4.0 - 2019-12-12 =
-
-**Added**
-
 - Add support for comment meta. Requires MB Comment Meta plugin.
 
 = 1.3.6 - 2019-11-07 =
-
-**Fixed**
-
 - Fix term meta not available.
 
 = 1.3.5 =
