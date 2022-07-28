@@ -131,6 +131,18 @@ class MB_Rest_API {
 	 */
 	public function get_user_meta( $object ) {
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'user' ] );
+
+		// Ignore MB User Profile meta boxes.
+		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) {
+			return ! in_array( $meta_box->id, [
+				'rwmb-user-register',
+				'rwmb-user-login',
+				'rwmb-user-lost-password',
+				'rwmb-user-reset-password',
+				'rwmb-user-info',
+			], true );
+		} );
+
 		return $this->get_values( $meta_boxes, $object['id'], [ 'object_type' => 'user' ] );
 	}
 
@@ -188,7 +200,7 @@ class MB_Rest_API {
 	 * @param mixed $value     Field value.
 	 * @param int   $object_id Object ID.
 	 */
-	protected function update_value( $field, $value, $object_id ) {
+	private function update_value( $field, $value, $object_id ) {
 		$old = RWMB_Field::call( $field, 'raw_meta', $object_id );
 
 		$new = RWMB_Field::process_value( $value, $object_id, $field );
@@ -205,7 +217,7 @@ class MB_Rest_API {
 	 *
 	 * @return array
 	 */
-	protected function get_types( $type = 'post' ) {
+	private function get_types( $type = 'post' ) {
 		$types = get_post_types( [], 'objects' );
 		if ( 'taxonomy' === $type ) {
 			$types = get_taxonomies( [], 'objects' );
@@ -229,7 +241,7 @@ class MB_Rest_API {
 	 *
 	 * @return array
 	 */
-	protected function get_values( $meta_boxes, $object_id, $args = [] ) {
+	private function get_values( $meta_boxes, $object_id, $args = [] ) {
 		$fields = [];
 		foreach ( $meta_boxes as $meta_box ) {
 			$fields = array_merge( $fields, $meta_box->fields );
