@@ -9,3 +9,4 @@ Thumbs.db export-ignore
 .github export-ignore
 *.json export-ignore
 *.md export-ignore
+*.xml export-ignore
