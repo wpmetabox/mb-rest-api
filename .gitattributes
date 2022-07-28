@@ -10,3 +10,5 @@ Thumbs.db export-ignore
 *.json export-ignore
 *.md export-ignore
 *.xml export-ignore
+
+tests export-ignore

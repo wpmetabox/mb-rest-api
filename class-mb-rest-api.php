@@ -1,6 +1,6 @@
 <?php
 class MB_Rest_API {
-	protected $media_fields = [
+	private $media_fields = [
 		'media',
 		'file',
 		'file_upload',
@@ -12,7 +12,7 @@ class MB_Rest_API {
 		'thickbox_image',
 	];
 
-	protected $no_value_fields = [
+	private $no_value_fields = [
 		'heading',
 		'custom_html',
 		'divider',
@@ -20,44 +20,28 @@ class MB_Rest_API {
 	];
 
 	public function init() {
-		register_rest_field(
-			$this->get_types(),
-			'meta_box',
-			[
-				'get_callback'    => [ $this, 'get_post_meta' ],
-				'update_callback' => [ $this, 'update_post_meta' ],
-			]
-		);
+		register_rest_field( $this->get_types(), 'meta_box', [
+			'get_callback'    => [ $this, 'get_post_meta' ],
+			'update_callback' => [ $this, 'update_post_meta' ],
+		] );
+		register_rest_field( 'user', 'meta_box', [
+			'get_callback'    => [ $this, 'get_user_meta' ],
+			'update_callback' => [ $this, 'update_user_meta' ],
+		] );
+		register_rest_field( 'comment', 'meta_box', [
+			'get_callback'    => [ $this, 'get_comment_meta' ],
+			'update_callback' => [ $this, 'update_comment_meta' ],
+		] );
 
 		$taxonomies = $this->get_types( 'taxonomy' );
 		if ( in_array( 'post_tag', $taxonomies, true ) ) {
 			$post_tag_key                = array_search( 'post_tag', $taxonomies, true );
 			$taxonomies[ $post_tag_key ] = 'tag';
 		}
-		register_rest_field(
-			$taxonomies,
-			'meta_box',
-			[
-				'get_callback'    => [ $this, 'get_term_meta' ],
-				'update_callback' => [ $this, 'update_term_meta' ],
-			]
-		);
-		register_rest_field(
-			'user',
-			'meta_box',
-			[
-				'get_callback'    => [ $this, 'get_user_meta' ],
-				'update_callback' => [ $this, 'update_user_meta' ],
-			]
-		);
-		register_rest_field(
-			'comment',
-			'meta_box',
-			[
-				'get_callback'    => [ $this, 'get_comment_meta' ],
-				'update_callback' => [ $this, 'update_comment_meta' ],
-			]
-		);
+		register_rest_field( $taxonomies, 'meta_box', [
+			'get_callback'    => [ $this, 'get_term_meta' ],
+			'update_callback' => [ $this, 'update_term_meta' ],
+		] );
 	}
 
 	/**
@@ -254,6 +238,11 @@ class MB_Rest_API {
 		// Remove fields with no values.
 		$fields = array_filter( $fields, function( $field ) {
 			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
+		} );
+
+		// Remove fields with show_in_rest = false explicitly.
+		$fields = array_filter( $fields, function( $field ) {
+			return ! isset( $field['show_in_rest'] ) || $field['show_in_rest'] !== false;
 		} );
 
 		$values = [];
