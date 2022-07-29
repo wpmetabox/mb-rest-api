@@ -3,8 +3,8 @@ Contributors: metabox, rilwis
 Donate link: https://metabox.io/pricing/
 Tags: meta-box, custom fields, custom field, meta, meta-boxes, field, rest, rest api, api, wp api, wp rest api, json
 Requires at least: 4.1
-Tested up to: 5.9.3
-Stable tag: 1.4.1
+Tested up to: 6.0.1
+Stable tag: 1.5.0
 Requires PHP: 5.6
 License: GPLv2 or later
 
@@ -36,6 +36,10 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 == Screenshots ==
 
 == Changelog ==
+
+= 1.5.0 - 2022-07-29
+- Remove fields in the Rest API responses with hide_from_rest = true
+- Do not show MB User Profile fields in the Rest API responses
 
 = 1.4.1 - 2022-05-17 =
 - Fix not working with `_filter`.
