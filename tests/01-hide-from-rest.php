@@ -5,9 +5,9 @@ add_filter( 'rwmb_meta_boxes', function( $meta_boxes ) {
 		'fields' => [
 			'Name',
 			[
-				'id'           => 'email',
-				'name'         => 'Email',
-				'show_in_rest' => false,
+				'id'             => 'email',
+				'name'           => 'Email',
+				'hide_from_rest' => true,
 			],
 		],
 	];

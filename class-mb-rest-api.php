@@ -252,9 +252,9 @@ class MB_Rest_API {
 			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
 		} );
 
-		// Remove fields with show_in_rest = false explicitly.
+		// Remove fields with hide_from_rest = true.
 		$fields = array_filter( $fields, function( $field ) {
-			return ! isset( $field['show_in_rest'] ) || $field['show_in_rest'] !== false;
+			return empty( $field['hide_from_rest'] );
 		} );
 
 		$values = [];
