@@ -80,6 +80,7 @@ class MB_Rest_API {
 			$this->update_value( $field, $value, $object->ID );
 		}
 
+		$this->update_data_for_custom_table( $object->ID, 'post' );
 		do_action( 'rwmb_after_save_post', $object->ID );
 	}
 
@@ -119,6 +120,7 @@ class MB_Rest_API {
 			$this->update_value( $field, $value, $object->term_id );
 		}
 
+		$this->update_data_for_custom_table( $object->term_id, 'term' );
 		do_action( 'rwmb_after_save_post', $object->term_id );
 	}
 
@@ -160,6 +162,7 @@ class MB_Rest_API {
 			$this->update_value( $field, $value, $object->ID );
 		}
 
+		$this->update_data_for_custom_table( $object->ID, 'user' );
 		do_action( 'rwmb_after_save_post', $object->ID );
 	}
 
@@ -190,6 +193,7 @@ class MB_Rest_API {
 			$this->update_value( $field, $value, $object->comment_ID );
 		}
 
+		$this->update_data_for_custom_table( $object->comment_ID, 'comment' );
 		do_action( 'rwmb_after_save_post', $object->comment_ID );
 	}
 
@@ -327,5 +331,39 @@ class MB_Rest_API {
 		}
 
 		return $value;
+	}
+
+	private function update_data_for_custom_table( $object_id, $object_type ) {
+		if ( ! class_exists( 'MetaBox\CustomTable\Cache' ) || ! class_exists( 'MetaBox\CustomTable\Loader' ) ) {
+			return;
+		}
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => $object_type ] );
+		foreach ( $meta_boxes as $meta_box ) {
+			$table = $meta_box->table;
+			if ( ! $table ) {
+				continue;
+			}
+
+			$storage = $meta_box->get_storage();
+			$row     = MetaBox\CustomTable\Cache::get( $object_id, $table );
+			$row     = array_map( function( $data ) {
+				return is_array( $data ) ? serialize( $data ) : $data;
+			}, $row );
+
+			// Delete
+			if ( ! MetaBox\CustomTable\Loader::has_data( $row ) ) {
+				$storage->delete_row( $object_id );
+				continue;
+			}
+
+			// Update.
+			if ( $storage->row_exists( $object_id ) ) {
+				$storage->update_row( $object_id, $row );
+				continue;
+			}
+
+			$row['ID'] = $object_id;
+			$storage->insert_row( $row );
+		}
 	}
 }
