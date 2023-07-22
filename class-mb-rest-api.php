@@ -202,7 +202,9 @@ class MB_Rest_API {
 	 */
 	private function update_value( $field, $value, $object_id ) {
 		$old = RWMB_Field::call( $field, 'raw_meta', $object_id );
-
+		if ( is_array( $old ) && $old[0] ) {
+			$old = $old[0];
+		}
 		$new = RWMB_Field::process_value( $value, $object_id, $field );
 		$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object_id );
 
