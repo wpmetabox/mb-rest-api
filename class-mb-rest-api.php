@@ -80,6 +80,7 @@ class MB_Rest_API {
 			$this->update_value( $field, $value, $object->ID );
 		}
 
+		rwmb_request()->set_post_data( [ 'object_type' => 'post' ] );
 		do_action( 'rwmb_after_save_post', $object->ID );
 	}
 
@@ -119,6 +120,7 @@ class MB_Rest_API {
 			$this->update_value( $field, $value, $object->term_id );
 		}
 
+		rwmb_request()->set_post_data( [ 'object_type' => 'term' ] );
 		do_action( 'rwmb_after_save_post', $object->term_id );
 	}
 
@@ -160,6 +162,7 @@ class MB_Rest_API {
 			$this->update_value( $field, $value, $object->ID );
 		}
 
+		rwmb_request()->set_post_data( [ 'object_type' => 'user' ] );
 		do_action( 'rwmb_after_save_post', $object->ID );
 	}
 
@@ -190,6 +193,7 @@ class MB_Rest_API {
 			$this->update_value( $field, $value, $object->comment_ID );
 		}
 
+		rwmb_request()->set_post_data( [ 'object_type' => 'comment' ] );
 		do_action( 'rwmb_after_save_post', $object->comment_ID );
 	}
 
