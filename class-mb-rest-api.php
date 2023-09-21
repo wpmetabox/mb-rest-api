@@ -77,6 +77,7 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->post_type );
+			$this->check_field_exists( $field_id, $field );
 			$this->update_value( $field, $value, $object->ID );
 		}
 
@@ -117,6 +118,7 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->taxonomy, 'term' );
+			$this->check_field_exists( $field_id, $field );
 			$this->update_value( $field, $value, $object->term_id );
 		}
 
@@ -159,6 +161,7 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, 'user', 'user' );
+			$this->check_field_exists( $field_id, $field );
 			$this->update_value( $field, $value, $object->ID );
 		}
 
@@ -189,7 +192,7 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, 'comment', 'comment' );
-
+			$this->check_field_exists( $field_id, $field );
 			$this->update_value( $field, $value, $object->comment_ID );
 		}
 
@@ -205,13 +208,17 @@ class MB_Rest_API {
 	 * @param int   $object_id Object ID.
 	 */
 	private function update_value( $field, $value, $object_id ) {
-		$old = RWMB_Field::call( $field, 'raw_meta', $object_id );
+		try {
+			$old = RWMB_Field::call( $field, 'raw_meta', $object_id );
 
-		$new = RWMB_Field::process_value( $value, $object_id, $field );
-		$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object_id );
+			$new = RWMB_Field::process_value( $value, $object_id, $field );
+			$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object_id );
 
-		// Call defined method to save meta value, if there's no methods, call common one.
-		RWMB_Field::call( $field, 'save', $new, $old, $object_id );
+			// Call defined method to save meta value, if there's no methods, call common one.
+			RWMB_Field::call( $field, 'save', $new, $old, $object_id );
+		} catch ( Error $e ) {
+			trigger_error( $e->getMessage(), E_USER_WARNING ); // @codingStandardsIgnoreLine.
+		}
 	}
 
 	/**
@@ -331,5 +338,13 @@ class MB_Rest_API {
 		}
 
 		return $value;
+	}
+
+	private function check_field_exists( $field_id, $field_value ) {
+		if ( empty( $field_value ) ) {
+			header( "Content-Type:application/json" );
+			print json_encode( __( 'Field ' . $field_id . ' does not exists.', 'mb-rest-api' ) );
+			return;
+		}
 	}
 }
