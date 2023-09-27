@@ -343,8 +343,11 @@ class MB_Rest_API {
 	private function check_field_exists( $field_id, $field_value ) {
 		if ( empty( $field_value ) ) {
 			header( 'Content-Type:application/json' );
-			http_response_code(404);
-			print json_encode( [ 'message' => __( 'Field ' . $field_id . ' does not exists.', 'mb-rest-api' ) ] );
+			http_response_code( 404 );
+			print json_encode( [
+				'status'  => 404,
+				'message' => __( 'Field ' . $field_id . ' does not exists.', 'mb-rest-api' )
+			] );
 
 			die;
 		}
