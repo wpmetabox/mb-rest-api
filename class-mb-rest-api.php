@@ -77,6 +77,7 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->post_type );
+			$this->check_field_exists( $field_id, $field );
 			$this->update_value( $field, $value, $object->ID );
 		}
 
@@ -117,6 +118,7 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->taxonomy, 'term' );
+			$this->check_field_exists( $field_id, $field );
 			$this->update_value( $field, $value, $object->term_id );
 		}
 
@@ -159,6 +161,7 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, 'user', 'user' );
+			$this->check_field_exists( $field_id, $field );
 			$this->update_value( $field, $value, $object->ID );
 		}
 
@@ -189,7 +192,7 @@ class MB_Rest_API {
 
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, 'comment', 'comment' );
-
+			$this->check_field_exists( $field_id, $field );
 			$this->update_value( $field, $value, $object->comment_ID );
 		}
 
@@ -331,5 +334,11 @@ class MB_Rest_API {
 		}
 
 		return $value;
+	}
+
+	private function check_field_exists( $field_id, $field ) {
+		if ( empty( $field ) ) {
+			wp_send_json_error( sprintf( __( 'Field %s does not exists', 'mb-rest-api' ), $field_id ), 500 );
+		}
 	}
 }
