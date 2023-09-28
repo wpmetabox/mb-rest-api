@@ -337,10 +337,8 @@ class MB_Rest_API {
 	}
 
 	private function check_field_exists( $field_id, $field ) {
-		if ( $field ) {
-			return;
+		if ( empty( $field ) ) {
+			wp_send_json_error( sprintf( __( 'Field %s does not exists', 'mb-rest-api' ), $field_id ), 500 );
 		}
-
-		wp_send_json_error( sprintf( __( 'Field %s does not exists', 'mb-rest-api' ), $field_id ) );
 	}
 }
