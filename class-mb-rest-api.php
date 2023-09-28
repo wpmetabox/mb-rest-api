@@ -341,6 +341,7 @@ class MB_Rest_API {
 			return;
 		}
 
+		// Send an error, mimic how WordPress returns an error for a Rest request.
 		$status_code = 500;
 		status_header( $status_code );
 
