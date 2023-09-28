@@ -208,17 +208,13 @@ class MB_Rest_API {
 	 * @param int   $object_id Object ID.
 	 */
 	private function update_value( $field, $value, $object_id ) {
-		try {
-			$old = RWMB_Field::call( $field, 'raw_meta', $object_id );
+		$old = RWMB_Field::call( $field, 'raw_meta', $object_id );
 
-			$new = RWMB_Field::process_value( $value, $object_id, $field );
-			$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object_id );
+		$new = RWMB_Field::process_value( $value, $object_id, $field );
+		$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object_id );
 
-			// Call defined method to save meta value, if there's no methods, call common one.
-			RWMB_Field::call( $field, 'save', $new, $old, $object_id );
-		} catch ( Error $e ) {
-			trigger_error( $e->getMessage(), E_USER_WARNING ); // @codingStandardsIgnoreLine.
-		}
+		// Call defined method to save meta value, if there's no methods, call common one.
+		RWMB_Field::call( $field, 'save', $new, $old, $object_id );
 	}
 
 	/**
@@ -340,16 +336,11 @@ class MB_Rest_API {
 		return $value;
 	}
 
-	private function check_field_exists( $field_id, $field_value ) {
-		if ( empty( $field_value ) ) {
-			header( 'Content-Type:application/json' );
-			http_response_code( 404 );
-			print json_encode( [
-				'status'  => 404,
-				'message' => __( 'Field ' . $field_id . ' does not exists.', 'mb-rest-api' )
-			] );
-
-			die;
+	private function check_field_exists( $field_id, $field ) {
+		if ( $field ) {
+			return;
 		}
+
+		wp_send_json_error( sprintf( __( 'Field %s does not exists', 'mb-rest-api' ), $field_id ) );
 	}
 }
