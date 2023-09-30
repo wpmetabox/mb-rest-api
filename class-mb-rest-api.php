@@ -1,5 +1,13 @@
 <?php
 class MB_Rest_API {
+
+	/**
+	 * The namespace of this controller’s route.
+	 *
+	 * @var string
+	 */
+	const NAMESPACE = 'mb-rest-api/v1';
+
 	private $media_fields = [
 		'media',
 		'file',
@@ -18,6 +26,10 @@ class MB_Rest_API {
 		'divider',
 		'button',
 	];
+
+	public function __construct() {
+		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
+	}
 
 	public function init() {
 		register_rest_field( $this->get_types(), 'meta_box', [
@@ -42,6 +54,24 @@ class MB_Rest_API {
 			'get_callback'    => [ $this, 'get_term_meta' ],
 			'update_callback' => [ $this, 'update_term_meta' ],
 		] );
+	}
+
+	public function register_routes() {
+		register_rest_route( self::NAMESPACE, '/settings-page/', array(
+			'methods' => WP_REST_Server::READABLE,
+			'callback' => [ $this, 'get_options_meta' ],
+			'permission_callback' => [ $this, 'has_permission' ],
+		) );
+
+		register_rest_route( self::NAMESPACE, '/settings-page/', array(
+			'methods' => WP_REST_Server::CREATABLE,
+			'callback' => [ $this, 'update_options_meta' ],
+			'permission_callback' => [ $this, 'has_permission' ],
+		) );
+	}
+
+	public function has_permission() {
+		return current_user_can( 'manage_options' );
 	}
 
 	/**
@@ -201,6 +231,52 @@ class MB_Rest_API {
 	}
 
 	/**
+	 * Get settings page meta for the rest API.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 *
+	 * @return WP_REST_Response|WP_Error Response object on success or WP_Error object on failure.
+	 */
+	public function get_options_meta( $object ) {
+		$settings_page =  get_option( $object[ 'id' ] );
+		if ( ! $settings_page ) {
+			return [];
+		}
+
+		return $settings_page;
+	}
+
+	/**
+	 * Update settings page meta for the rest API.
+	 */
+	public function update_options_meta( $data ) {
+		$data = is_string( $data['page'] ) ? json_decode( $data['page'], true ) : $data;
+
+		$page_id = $data['id'];
+		$settings_page = get_option( $data[ 'id' ] );
+
+		if ( ! $settings_page ) {
+			$this->send_error_message(
+				$page_id,
+				500,
+				'mb_rest_api_settings_page_not_exsists',
+				sprintf( __( 'Settings page %s does not exists', 'mb-rest-api' ), $page_id ),
+			);
+		}
+
+		unset( $data['id'] );
+		if ( update_option( $page_id, array_merge( $settings_page, $data ) ) ) {
+			wp_send_json_success();
+		}
+		$this->send_error_message(
+			$page_id,
+			500,
+			'mb_rest_api_error_upadate_settings_page',
+			sprintf( __( 'Unable to update settings page %s', 'mb-rest-api' ), $page_id ),
+		);
+	}
+
+	/**
 	 * Update field value.
 	 *
 	 * @param array $field     Field data.
@@ -341,13 +417,21 @@ class MB_Rest_API {
 			return;
 		}
 
+		$this->send_error_message(
+			$field_id,
+			500,
+			'mb_rest_api_field_not_exists',
+			sprintf( __( 'Field %s does not exists', 'mb-rest-api' ), $field_id ),
+		);
+	}
+
+	private function send_error_message( $field_id, $status_code, $id, $message ) {
 		// Send an error, mimic how WordPress returns an error for a Rest request.
-		$status_code = 500;
 		status_header( $status_code );
 
 		$error = new WP_Error(
-			'mb_rest_api_field_not_exists',
-			sprintf( __( 'Field %s does not exists', 'mb-rest-api' ), $field_id ),
+			$id,
+			$message,
 			[ 'status' => $status_code ]
 		);
 		$response = rest_convert_error_to_response( $error );
