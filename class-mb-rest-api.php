@@ -237,43 +237,54 @@ class MB_Rest_API {
 	 *
 	 * @return WP_REST_Response|WP_Error Response object on success or WP_Error object on failure.
 	 */
-	public function get_options_meta( $object ) {
-		$settings_page =  get_option( $object[ 'id' ] );
-		if ( ! $settings_page ) {
-			return [];
+	public function get_options_meta( WP_REST_Request $request ) {
+		$option =  get_option( $request->get_param( 'id' ) );
+		$fields = $this->get_settings_fields( $meta_boxes, $option );
+
+		$values = [];
+		foreach ( $fields as $field ) {
+			$values[ $field['id'] ] = $option[ $field['id'] ] ?? '';
 		}
 
-		return $settings_page;
+		return $values;
 	}
 
 	/**
 	 * Update settings page meta for the rest API.
 	 */
 	public function update_options_meta( $data ) {
-		$data = is_string( $data['page'] ) ? json_decode( $data['page'], true ) : $data;
+		$data = is_string( $data['setting'] ) ? json_decode( $data['setting'], true ) : $data;
 
 		$page_id = $data['id'];
-		$settings_page = get_option( $data[ 'id' ] );
+		$option = get_option( $data[ 'id' ] );
 
-		if ( ! $settings_page ) {
+		if ( ! isset( $page_id ) || ! $option ) {
 			$this->send_error_message(
-				$page_id,
-				500,
 				'mb_rest_api_settings_page_not_exsists',
 				sprintf( __( 'Settings page %s does not exists', 'mb-rest-api' ), $page_id ),
 			);
 		}
 
 		unset( $data['id'] );
-		if ( update_option( $page_id, array_merge( $settings_page, $data ) ) ) {
-			wp_send_json_success();
+		$fields = $this->get_settings_fields( $option );
+		$field_ids = [];
+		foreach ( $fields as $field ) {
+			$field_ids[] = $field['id'];
 		}
-		$this->send_error_message(
-			$page_id,
-			500,
-			'mb_rest_api_error_upadate_settings_page',
-			sprintf( __( 'Unable to update settings page %s', 'mb-rest-api' ), $page_id ),
-		);
+
+		array_walk( $data, function( $value, $field_id ) use ( $page_id, $field_ids ) {
+			$option = get_option( $page_id );
+			$field  = [ $field_id => $value ];
+
+			if ( ! in_array( $field_id, $field_ids ) ||
+				( ! empty( array_diff( $field, $option ) ) // Check if update same old value, update_option will return false
+				&& ! update_option( $page_id, array_merge( $option, $field ) ) )
+			) {
+				$this->check_field_exists( $field_id, null );
+			}
+		} );
+
+		wp_send_json_success();
 	}
 
 	/**
@@ -352,6 +363,39 @@ class MB_Rest_API {
 	}
 
 	/**
+	 * Get all settings page fields from list of meta boxes.
+	 *
+	 * @param array $option Array of settings page field value.
+	 *
+	 * @param array $args   Additional params for helper function.
+	 *
+	 * @return array
+	 */
+	private function get_settings_fields( $option, $args = [] ) {
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'setting' ] );
+		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) {
+			return in_array( 'post', $meta_box->post_types, true );
+		} );
+
+		$fields = [];
+		foreach ( $meta_boxes as $meta_box ) {
+			$fields = array_merge( $fields, $meta_box->fields );
+		}
+
+		// Remove fields with no values.
+		$fields = array_filter( $fields, function( $field ) {
+			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
+		} );
+
+		// Remove fields with hide_from_rest = true.
+		$fields = array_filter( $fields, function( $field ) {
+			return empty( $field['hide_from_rest'] );
+		} );
+
+		return $fields;
+	}
+
+	/**
 	 * Normalize value.
 	 *
 	 * @param  array $field Field settings.
@@ -418,14 +462,12 @@ class MB_Rest_API {
 		}
 
 		$this->send_error_message(
-			$field_id,
-			500,
 			'mb_rest_api_field_not_exists',
 			sprintf( __( 'Field %s does not exists', 'mb-rest-api' ), $field_id ),
 		);
 	}
 
-	private function send_error_message( $field_id, $status_code, $id, $message ) {
+	private function send_error_message( $id, $message, $status_code = 500 ) {
 		// Send an error, mimic how WordPress returns an error for a Rest request.
 		status_header( $status_code );
 
