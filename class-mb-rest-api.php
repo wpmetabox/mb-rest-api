@@ -253,15 +253,12 @@ class MB_Rest_API {
 	}
 
 	private function get_option_name_from_settings_page_id( $settings_pages_id ) {
-		global $wpdb;
-		$results = $wpdb->get_results("SELECT * FROM  $wpdb->postmeta WHERE meta_key = 'settings_page'", 'ARRAY_A' );
+		$settings_pages = apply_filters( 'mb_settings_pages', [] );
+		$settings_pages = array_filter( $settings_pages, function ( $settings_page ) use ( $settings_pages_id ) {
+			return $settings_pages_id === $settings_page['id'];
+		} );
 
-		foreach( $results as $post ) {
-			$settings = get_post_meta( $post['post_id'], 'settings_page', true );
-			if ( $settings_pages_id === $settings['id'] ) {
-				return $settings['option_name'];
-			}
-		}
+		return $settings_pages[0]['option_name'];
 	}
 
 	/**
