@@ -248,46 +248,8 @@ class MB_Rest_API {
 			return in_array( $settings_pages_id, $meta_box->settings_pages, true );
 		} );
 
-		return $this->get_settings_page_values( $meta_boxes, $settings_pages_id );
-	}
-
-	/**
-	 * Get all settings page fields' values from list of meta boxes.
-	 *
-	 * @param array $meta_boxes Array of meta box object.
-	 *
-	 * @param int   $settings_pages_id
-	 * @param array $args       Additional params for helper function.
-	 *
-	 * @return array
-	 */
-	private function get_settings_page_values( $meta_boxes, $settings_pages_id ) {
 		$option_name = $this->get_option_name_from_settings_page_id( $settings_pages_id );
-
-		$fields = [];
-		foreach ( $meta_boxes as $meta_box ) {
-			$fields = array_merge( $fields, $meta_box->fields );
-		}
-
-		// Remove fields with no values.
-		$fields = array_filter( $fields, function( $field ) {
-			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
-		} );
-
-		// Remove fields with hide_from_rest = true.
-		$fields = array_filter( $fields, function( $field ) {
-			return empty( $field['hide_from_rest'] );
-		} );
-
-		$values = [];
-		foreach ( $fields as $field ) {
-			$value = rwmb_get_value( $field['id'], [ 'object_type' => 'setting' ], $option_name );
-			$value = $this->normalize_value( $field, $value );
-
-			$values[ $field['id'] ] = $value;
-		}
-
-		return $values;
+		return $this->get_values( $meta_boxes, $option_name, ['object_type' => 'setting'] );
 	}
 
 	private function get_option_name_from_settings_page_id( $settings_pages_id ) {
