@@ -59,13 +59,13 @@ class MB_Rest_API {
 	public function register_routes() {
 		register_rest_route( self::NAMESPACE, '/settings-page/', array(
 			'methods' => WP_REST_Server::READABLE,
-			'callback' => [ $this, 'get_options_meta' ],
+			'callback' => [ $this, 'get_settings_meta' ],
 			'permission_callback' => [ $this, 'has_permission' ],
 		) );
 
 		register_rest_route( self::NAMESPACE, '/settings-page/', array(
 			'methods' => WP_REST_Server::CREATABLE,
-			'callback' => [ $this, 'update_options_meta' ],
+			'callback' => [ $this, 'update_settings_meta' ],
 			'permission_callback' => [ $this, 'has_permission' ],
 		) );
 	}
@@ -237,54 +237,76 @@ class MB_Rest_API {
 	 *
 	 * @return WP_REST_Response|WP_Error Response object on success or WP_Error object on failure.
 	 */
-	public function get_options_meta( WP_REST_Request $request ) {
-		$option =  get_option( $request->get_param( 'id' ) );
-		$fields = $this->get_settings_fields( $meta_boxes, $option );
+	public function get_settings_meta( WP_REST_Request $request ) {
+		$settings_pages_id = $request->get_param( 'id' );
+		if ( ! $settings_pages_id ) {
+			return [];
+		}
+
+		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'setting' ] );
+		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $settings_pages_id ) {
+			return in_array( $settings_pages_id, $meta_box->settings_pages, true );
+		} );
+
+		return $this->get_settings_page_values( $meta_boxes, $settings_pages_id );
+	}
+
+	/**
+	 * Get all settings page fields' values from list of meta boxes.
+	 *
+	 * @param array $meta_boxes Array of meta box object.
+	 *
+	 * @param int   $settings_pages_id
+	 * @param array $args       Additional params for helper function.
+	 *
+	 * @return array
+	 */
+	private function get_settings_page_values( $meta_boxes, $settings_pages_id ) {
+		$option_name = $this->get_option_name_from_settings_page_id( $settings_pages_id );
+
+		$fields = [];
+		foreach ( $meta_boxes as $meta_box ) {
+			$fields = array_merge( $fields, $meta_box->fields );
+		}
+
+		// Remove fields with no values.
+		$fields = array_filter( $fields, function( $field ) {
+			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
+		} );
+
+		// Remove fields with hide_from_rest = true.
+		$fields = array_filter( $fields, function( $field ) {
+			return empty( $field['hide_from_rest'] );
+		} );
 
 		$values = [];
 		foreach ( $fields as $field ) {
-			$values[ $field['id'] ] = $option[ $field['id'] ] ?? '';
+			$value = rwmb_get_value( $field['id'], [ 'object_type' => 'setting' ], $option_name );
+			$value = $this->normalize_value( $field, $value );
+
+			$values[ $field['id'] ] = $value;
 		}
 
 		return $values;
+	}
+
+	private function get_option_name_from_settings_page_id( $settings_pages_id ) {
+		global $wpdb;
+		$results = $wpdb->get_results("SELECT * FROM  $wpdb->postmeta WHERE meta_key = 'settings_page'", 'ARRAY_A' );
+
+		foreach( $results as $post ) {
+			$settings = get_post_meta( $post['post_id'], 'settings_page', true );
+			if ( $settings_pages_id === $settings['id'] ) {
+				return $settings['option_name'];
+			}
+		}
 	}
 
 	/**
 	 * Update settings page meta for the rest API.
 	 */
 	public function update_options_meta( $data ) {
-		$data = is_string( $data['setting'] ) ? json_decode( $data['setting'], true ) : $data;
-
-		$page_id = $data['id'];
-		$option = get_option( $data[ 'id' ] );
-
-		if ( ! isset( $page_id ) || ! $option ) {
-			$this->send_error_message(
-				'mb_rest_api_settings_page_not_exsists',
-				sprintf( __( 'Settings page %s does not exists', 'mb-rest-api' ), $page_id ),
-			);
-		}
-
-		unset( $data['id'] );
-		$fields = $this->get_settings_fields( $option );
-		$field_ids = [];
-		foreach ( $fields as $field ) {
-			$field_ids[] = $field['id'];
-		}
-
-		array_walk( $data, function( $value, $field_id ) use ( $page_id, $field_ids ) {
-			$option = get_option( $page_id );
-			$field  = [ $field_id => $value ];
-
-			if ( ! in_array( $field_id, $field_ids ) ||
-				( ! empty( array_diff( $field, $option ) ) // Check if update same old value, update_option will return false
-				&& ! update_option( $page_id, array_merge( $option, $field ) ) )
-			) {
-				$this->check_field_exists( $field_id, null );
-			}
-		} );
-
-		wp_send_json_success();
+		return;
 	}
 
 	/**
@@ -360,39 +382,6 @@ class MB_Rest_API {
 		}
 
 		return $values;
-	}
-
-	/**
-	 * Get all settings page fields from list of meta boxes.
-	 *
-	 * @param array $option Array of settings page field value.
-	 *
-	 * @param array $args   Additional params for helper function.
-	 *
-	 * @return array
-	 */
-	private function get_settings_fields( $option, $args = [] ) {
-		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'setting' ] );
-		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) {
-			return in_array( 'post', $meta_box->post_types, true );
-		} );
-
-		$fields = [];
-		foreach ( $meta_boxes as $meta_box ) {
-			$fields = array_merge( $fields, $meta_box->fields );
-		}
-
-		// Remove fields with no values.
-		$fields = array_filter( $fields, function( $field ) {
-			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
-		} );
-
-		// Remove fields with hide_from_rest = true.
-		$fields = array_filter( $fields, function( $field ) {
-			return empty( $field['hide_from_rest'] );
-		} );
-
-		return $fields;
 	}
 
 	/**
