@@ -249,23 +249,66 @@ class MB_Rest_API {
 		} );
 
 		$option_name = $this->get_option_name_from_settings_page_id( $settings_pages_id );
+		if ( ! $option_name ) {
+			$this->send_error_message(
+				'mb_rest_api_empty_option_name',
+				sprintf( __( 'Option name of settings page %s is empty', 'mb-rest-api' ), $settings_pages_id ),
+			);
+		}
+
 		return $this->get_values( $meta_boxes, $option_name, ['object_type' => 'setting'] );
 	}
 
-	private function get_option_name_from_settings_page_id( $settings_pages_id ) {
+	private function get_option_name_from_settings_page_id( string $settings_pages_id ) : string {
 		$settings_pages = apply_filters( 'mb_settings_pages', [] );
-		$settings_pages = array_filter( $settings_pages, function ( $settings_page ) use ( $settings_pages_id ) {
-			return $settings_pages_id === $settings_page['id'];
-		} );
+		if ( empty( $settings_pages ) ) {
+			$this->send_error_message(
+				'mb_rest_api_empty_settings_page',
+				__( 'There is no settings page in your system', 'mb-rest-api' ),
+			);
+		}
 
-		return $settings_pages[0]['option_name'];
+		foreach ( $settings_pages as $settings_page ) {
+			if ( $settings_page['id'] === $settings_pages_id ) {
+				return $settings_page['option_name'] ?: $settings_page['id'];
+			}
+		}
+
+		return '';
 	}
 
 	/**
 	 * Update settings page meta for the rest API.
 	 */
-	public function update_options_meta( $data ) {
-		return;
+	public function update_settings_meta( $data ) {
+		$data = is_string( $data['setting'] ) ? json_decode( $data['setting'], true ) : $data;
+
+		$settings_pages_id = $data['id'];
+		if ( !  $settings_pages_id ) {
+			$this->send_error_message(
+				'mb_rest_api_settings_page_not_exsists',
+				sprintf( __( 'Settings page %s does not exists', 'mb-rest-api' ), $settings_pages_id ),
+			);
+		}
+
+		$option_name = $this->get_option_name_from_settings_page_id( $settings_pages_id );
+		if ( ! $option_name ) {
+			$this->send_error_message(
+				'mb_rest_api_empty_option_name',
+				sprintf( __( 'Option name of settings page %s is empty', 'mb-rest-api' ), $settings_pages_id ),
+			);
+		}
+
+		unset( $data['id'] );
+		foreach ( $data as $field_id => $value ) {
+			$field = rwmb_get_registry( 'field' )->get( $field_id, $option_name, 'setting' );
+			$this->check_field_exists( $field_id, $field );
+			$this->update_value( $field, $value, $option_name );
+		}
+
+		rwmb_request()->set_post_data( [ 'object_type' => 'setting' ] );
+		do_action( 'rwmb_after_save_post', $option_name );
+		wp_send_json_success();
 	}
 
 	/**
