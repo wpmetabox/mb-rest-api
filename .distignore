@@ -5,6 +5,8 @@
 .DS_Store
 Thumbs.db
 
+/tests
+
 .distignore
 .gitattributes
 .gitignore
