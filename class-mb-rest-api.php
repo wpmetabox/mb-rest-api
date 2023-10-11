@@ -103,16 +103,7 @@ class MB_Rest_API {
 	 * @param object       $object Post object.
 	 */
 	public function update_post_meta( $data, $object ) {
-		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
-
-		foreach ( $data as $field_id => $value ) {
-			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->post_type );
-			$this->check_field_exists( $field_id, $field );
-			$this->update_value( $field, $value, $object->ID );
-		}
-
-		rwmb_request()->set_post_data( [ 'object_type' => 'post' ] );
-		do_action( 'rwmb_after_save_post', $object->ID );
+		$this->update_values( $data, $object->ID, $object->post_type, 'post' );
 	}
 
 	/**
@@ -144,16 +135,7 @@ class MB_Rest_API {
 	 * @param object       $object Term object.
 	 */
 	public function update_term_meta( $data, $object ) {
-		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
-
-		foreach ( $data as $field_id => $value ) {
-			$field = rwmb_get_registry( 'field' )->get( $field_id, $object->taxonomy, 'term' );
-			$this->check_field_exists( $field_id, $field );
-			$this->update_value( $field, $value, $object->term_id );
-		}
-
-		rwmb_request()->set_post_data( [ 'object_type' => 'term' ] );
-		do_action( 'rwmb_after_save_post', $object->term_id );
+		$this->update_values( $data, $object->term_id, $object->taxonomy, 'term' );
 	}
 
 	/**
@@ -187,16 +169,7 @@ class MB_Rest_API {
 	 * @param object       $object User object.
 	 */
 	public function update_user_meta( $data, $object ) {
-		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
-
-		foreach ( $data as $field_id => $value ) {
-			$field = rwmb_get_registry( 'field' )->get( $field_id, 'user', 'user' );
-			$this->check_field_exists( $field_id, $field );
-			$this->update_value( $field, $value, $object->ID );
-		}
-
-		rwmb_request()->set_post_data( [ 'object_type' => 'user' ] );
-		do_action( 'rwmb_after_save_post', $object->ID );
+		$this->update_values( $data, $object->ID, 'user', 'user' );
 	}
 
 	/**
@@ -218,16 +191,7 @@ class MB_Rest_API {
 	 * @param object       $object Comment object.
 	 */
 	public function update_comment_meta( $data, $object ) {
-		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
-
-		foreach ( $data as $field_id => $value ) {
-			$field = rwmb_get_registry( 'field' )->get( $field_id, 'comment', 'comment' );
-			$this->check_field_exists( $field_id, $field );
-			$this->update_value( $field, $value, $object->comment_ID );
-		}
-
-		rwmb_request()->set_post_data( [ 'object_type' => 'comment' ] );
-		do_action( 'rwmb_after_save_post', $object->comment_ID );
+		$this->update_values( $data, $object->comment_ID, 'comment', 'comment' );
 	}
 
 	/**
@@ -279,20 +243,24 @@ class MB_Rest_API {
 		}
 
 		$option_name = $this->get_option_name_from_settings_page_id( $settings_pages_id );
+		$data        = $request->get_param( 'data' );
 
-		$data = $request->get_param( 'data' );
+		$this->update_values( $data, $option_name, $option_name, 'setting' );
+
+		return $this->get_settings_meta( $request );
+	}
+
+	private function update_values( $data, $object_id, $object_subtype, $object_type ) {
 		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
 
 		foreach ( $data as $field_id => $value ) {
-			$field = rwmb_get_registry( 'field' )->get( $field_id, $option_name, 'setting' );
+			$field = rwmb_get_registry( 'field' )->get( $field_id, $object_subtype, $object_type );
 			$this->check_field_exists( $field_id, $field );
-			$this->update_value( $field, $value, $option_name );
+			$this->update_value( $field, $value, $object_id );
 		}
 
-		rwmb_request()->set_post_data( [ 'object_type' => 'setting' ] );
-		do_action( 'rwmb_after_save_post', $option_name );
-
-		return $this->get_settings_meta( $request );
+		rwmb_request()->set_post_data( [ 'object_type' => $object_type ] );
+		do_action( 'rwmb_after_save_post', $object_id );
 	}
 
 	/**
