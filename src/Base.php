@@ -1,12 +1,14 @@
 <?php
 namespace MetaBox\RestApi;
 
+use ReflectionClass;
 use WP_Error;
 use RWMB_Field;
 
 abstract class Base {
 	const NAMESPACE = 'meta-box/v1';
 	const KEY       = 'meta_box';
+	protected $object_type;
 
 	private $media_fields = [
 		'media',
@@ -28,10 +30,24 @@ abstract class Base {
 	];
 
 	public function __construct() {
+		$this->object_type = strtolower( ( new ReflectionClass( $this ) )->getShortName() );
 		add_action( 'rest_api_init', [ $this, 'init' ] );
 	}
 
-	abstract public function init();
+	public function init() {
+		register_rest_field( $this->get_types(), self::KEY, [
+			'get_callback'    => [ $this, 'get' ],
+			'update_callback' => [ $this, 'update' ],
+		] );
+	}
+
+	public function get( array $response_data ): array {
+		return $this->get_values( $response_data['id'], [ 'object_type' => $this->object_type ] );
+	}
+
+	protected function get_types(): array {
+		return [ $this->object_type ];
+	}
 
 	protected function get_fields( $type_or_id, $args ): array {
 		$fields = rwmb_get_object_fields( $type_or_id, $args['object_type'] );

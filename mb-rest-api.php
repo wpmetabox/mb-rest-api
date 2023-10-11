@@ -34,6 +34,6 @@ if ( ! function_exists( 'mb_rest_api_load' ) ) {
 		new MetaBox\RestApi\Term;
 		new MetaBox\RestApi\User;
 		new MetaBox\RestApi\Comment;
-		new MetaBox\RestApi\SettingsPage;
+		new MetaBox\RestApi\Setting;
 	}
 }

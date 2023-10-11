@@ -4,17 +4,17 @@ namespace MetaBox\RestApi;
 use WP_REST_Server;
 use WP_REST_Request;
 
-class SettingsPage extends Base {
+class Setting extends Base {
 	public function init() {
 		register_rest_route( self::NAMESPACE, '/settings-page/', array(
 			'methods'             => WP_REST_Server::READABLE,
-			'callback'            => [ $this, 'get' ],
+			'callback'            => [ $this, 'get_settings_page' ],
 			'permission_callback' => [ $this, 'has_permission' ],
 		) );
 
 		register_rest_route( self::NAMESPACE, '/settings-page/', array(
 			'methods'             => WP_REST_Server::CREATABLE,
-			'callback'            => [ $this, 'update' ],
+			'callback'            => [ $this, 'update_settings_page' ],
 			'permission_callback' => [ $this, 'has_permission' ],
 		) );
 	}
@@ -23,7 +23,7 @@ class SettingsPage extends Base {
 		return current_user_can( 'manage_options' );
 	}
 
-	public function get( WP_REST_Request $request ) {
+	public function get_settings_page( WP_REST_Request $request ) {
 		$settings_pages_id = $request->get_param( 'id' );
 		if ( ! $settings_pages_id ) {
 			$this->send_error_message(
@@ -38,7 +38,7 @@ class SettingsPage extends Base {
 		return $this->get_values( $option_name, $args, $fields );
 	}
 
-	public function update( WP_REST_Request $request ) {
+	public function update_settings_page( WP_REST_Request $request ) {
 		$settings_pages_id = $request->get_param( 'id' );
 		if ( ! $settings_pages_id ) {
 			$this->send_error_message(
