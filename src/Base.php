@@ -33,51 +33,8 @@ abstract class Base {
 
 	abstract public function init();
 
-	protected function update_values( $data, $object_id, $object_subtype, $object_type ) {
-		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
-
-		foreach ( $data as $field_id => $value ) {
-			$field = rwmb_get_registry( 'field' )->get( $field_id, $object_subtype, $object_type );
-			$this->check_field_exists( $field_id, $field );
-			$this->update_value( $field, $value, $object_id );
-		}
-
-		rwmb_request()->set_post_data( [ 'object_type' => $object_type ] );
-		do_action( 'rwmb_after_save_post', $object_id );
-	}
-
-	/**
-	 * Update field value.
-	 *
-	 * @param array $field     Field data.
-	 * @param mixed $value     Field value.
-	 * @param int   $object_id Object ID.
-	 */
-	protected function update_value( $field, $value, $object_id ) {
-		$old = RWMB_Field::call( $field, 'raw_meta', $object_id );
-
-		$new = RWMB_Field::process_value( $value, $object_id, $field );
-		$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object_id );
-
-		// Call defined method to save meta value, if there's no methods, call common one.
-		RWMB_Field::call( $field, 'save', $new, $old, $object_id );
-	}
-
-	/**
-	 * Get all fields' values from list of meta boxes.
-	 *
-	 * @param array $meta_boxes Array of meta box object.
-	 *
-	 * @param int   $object_id  Object ID.
-	 * @param array $args       Additional params for helper function.
-	 *
-	 * @return array
-	 */
-	protected function get_values( $meta_boxes, $object_id, $args = [] ) {
-		$fields = [];
-		foreach ( $meta_boxes as $meta_box ) {
-			$fields = array_merge( $fields, $meta_box->fields );
-		}
+	protected function get_fields( $type_or_id, $args ): array {
+		$fields = rwmb_get_object_fields( $type_or_id, $args['object_type'] );
 
 		// Remove fields with no values.
 		$fields = array_filter( $fields, function ( $field ) {
@@ -88,6 +45,20 @@ abstract class Base {
 		$fields = array_filter( $fields, function ( $field ) {
 			return empty( $field['hide_from_rest'] );
 		} );
+
+		return $fields;
+	}
+
+	/**
+	 * Get all fields' values from list of meta boxes.
+	 *
+	 * @param int|string $object_id  Object ID.
+	 * @param array      $args       Additional params for helper function.
+	 *
+	 * @return array
+	 */
+	protected function get_values( $object_id, $args, $fields = [] ): array {
+		$fields = $fields ?: $this->get_fields( $object_id, $args );
 
 		$values = [];
 		foreach ( $fields as $field ) {
@@ -159,6 +130,36 @@ abstract class Base {
 		}
 
 		return $value;
+	}
+
+	protected function update_values( $data, $object_id, $object_subtype, $object_type ) {
+		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
+
+		foreach ( $data as $field_id => $value ) {
+			$field = rwmb_get_registry( 'field' )->get( $field_id, $object_subtype, $object_type );
+			$this->check_field_exists( $field_id, $field );
+			$this->update_value( $field, $value, $object_id );
+		}
+
+		rwmb_request()->set_post_data( [ 'object_type' => $object_type ] );
+		do_action( 'rwmb_after_save_post', $object_id );
+	}
+
+	/**
+	 * Update field value.
+	 *
+	 * @param array $field     Field data.
+	 * @param mixed $value     Field value.
+	 * @param int   $object_id Object ID.
+	 */
+	protected function update_value( $field, $value, $object_id ) {
+		$old = RWMB_Field::call( $field, 'raw_meta', $object_id );
+
+		$new = RWMB_Field::process_value( $value, $object_id, $field );
+		$new = RWMB_Field::filter( 'rest_value', $new, $field, $old, $object_id );
+
+		// Call defined method to save meta value, if there's no methods, call common one.
+		RWMB_Field::call( $field, 'save', $new, $old, $object_id );
 	}
 
 	private function check_field_exists( $field_id, $field ) {
