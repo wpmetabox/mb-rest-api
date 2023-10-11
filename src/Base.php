@@ -6,6 +6,7 @@ use RWMB_Field;
 
 abstract class Base {
 	const NAMESPACE = 'meta-box/v1';
+	const KEY       = 'meta_box';
 
 	private $media_fields = [
 		'media',
@@ -26,11 +27,11 @@ abstract class Base {
 		'button',
 	];
 
+	public function __construct() {
+		add_action( 'rest_api_init', [ $this, 'init' ] );
+	}
+
 	public function init() {
-		register_rest_field( $this->get_types(), 'meta_box', [
-			'get_callback'    => [ $this, 'get_post_meta' ],
-			'update_callback' => [ $this, 'update_post_meta' ],
-		] );
 		register_rest_field( 'user', 'meta_box', [
 			'get_callback'    => [ $this, 'get_user_meta' ],
 			'update_callback' => [ $this, 'update_user_meta' ],
@@ -49,38 +50,6 @@ abstract class Base {
 			'get_callback'    => [ $this, 'get_term_meta' ],
 			'update_callback' => [ $this, 'update_term_meta' ],
 		] );
-	}
-
-	/**
-	 * Get post meta for the rest API.
-	 *
-	 * @param array $object Post object.
-	 *
-	 * @return array
-	 */
-	public function get_post_meta( $object ) {
-		$post_id   = $object['id'];
-		$post_type = get_post_type( $post_id );
-		if ( ! $post_type ) {
-			return [];
-		}
-
-		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'post' ] );
-		$meta_boxes = array_filter( $meta_boxes, function ( $meta_box ) use ( $post_type ) {
-			return in_array( $post_type, $meta_box->post_types, true );
-		} );
-
-		return $this->get_values( $meta_boxes, $post_id );
-	}
-
-	/**
-	 * Update post meta for the rest API.
-	 *
-	 * @param string|array $data   Post meta values in either JSON or array format.
-	 * @param object       $object Post object.
-	 */
-	public function update_post_meta( $data, $object ) {
-		$this->update_values( $data, $object->ID, $object->post_type, 'post' );
 	}
 
 	/**
@@ -199,27 +168,6 @@ abstract class Base {
 
 		// Call defined method to save meta value, if there's no methods, call common one.
 		RWMB_Field::call( $field, 'save', $new, $old, $object_id );
-	}
-
-	/**
-	 * Get supported types in Rest API.
-	 *
-	 * @param string $type 'post' or 'taxonomy'.
-	 *
-	 * @return array
-	 */
-	private function get_types( $type = 'post' ) {
-		$types = get_post_types( [], 'objects' );
-		if ( 'taxonomy' === $type ) {
-			$types = get_taxonomies( [], 'objects' );
-		}
-		foreach ( $types as $type => $object ) {
-			if ( empty( $object->show_in_rest ) ) {
-				unset( $types[ $type ] );
-			}
-		}
-
-		return array_keys( $types );
 	}
 
 	/**

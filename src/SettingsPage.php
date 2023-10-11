@@ -5,12 +5,7 @@ use WP_REST_Server;
 use WP_REST_Request;
 
 class SettingsPage extends Base {
-
-	public function __construct() {
-		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
-	}
-
-	public function register_routes() {
+	public function init() {
 		register_rest_route( self::NAMESPACE, '/settings-page/', array(
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'get_settings_meta' ],
