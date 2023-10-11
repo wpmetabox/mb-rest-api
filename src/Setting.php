@@ -26,30 +26,16 @@ class Setting extends Base {
 	}
 
 	public function get_data( WP_REST_Request $request ) {
-		$settings_pages_id = $request->get_param( 'id' );
-		if ( ! $settings_pages_id ) {
-			$this->send_error_message(
-				'no_settings_page',
-				__( 'No settings page.', 'mb-rest-api' )
-			);
-		}
-
-		$option_name = $this->get_option_name_from_settings_page_id( $settings_pages_id );
-		$fields      = $this->get_fields( $settings_pages_id );
+		$settings_page = $this->get_settings_page( $request );
+		$option_name   = $settings_page['option_name'] ?: $settings_page['id'];
+		$fields        = $this->get_fields( $settings_page['id'] );
 		return $this->get_values( $option_name, $fields );
 	}
 
 	public function update_data( WP_REST_Request $request ) {
-		$settings_pages_id = $request->get_param( 'id' );
-		if ( ! $settings_pages_id ) {
-			$this->send_error_message(
-				'no_settings_page',
-				__( 'No settings page.', 'mb-rest-api' )
-			);
-		}
-
-		$option_name = $this->get_option_name_from_settings_page_id( $settings_pages_id );
-		$data        = $request->get_param( 'data' );
+		$settings_page = $this->get_settings_page( $request );
+		$option_name   = $settings_page['option_name'] ?: $settings_page['id'];
+		$data          = $request->get_param( 'data' );
 
 		$this->update_values( $data, $option_name, $option_name );
 
@@ -59,7 +45,7 @@ class Setting extends Base {
 	private function get_settings_page( WP_REST_Request $request ): array {
 		$id = $request->get_param( 'id' );
 		if ( ! $id ) {
-			$this->send_error_message( 'no_settings_page', __( 'No settings page.', 'mb-rest-api' ) );
+			$this->send_error_message( 'no_settings_page_id', __( 'No settings page id.', 'mb-rest-api' ) );
 		}
 
 		$settings_pages = apply_filters( 'mb_settings_pages', [] );
@@ -69,21 +55,10 @@ class Setting extends Base {
 			}
 		}
 
-		$this->send_error_message( 'no_settings_page', __( 'No settings page.', 'mb-rest-api' ) );
-	}
-
-	private function get_option_name_from_settings_page_id( string $settings_pages_id ) {
-		$settings_pages = apply_filters( 'mb_settings_pages', [] );
-		foreach ( $settings_pages as $settings_page ) {
-			if ( $settings_page['id'] === $settings_pages_id ) {
-				return $settings_page['option_name'] ?: $settings_page['id'];
-			}
-		}
-
 		$this->send_error_message(
-			'no_settings_page',
-			// Translators: %s - Settings page ID.
-			sprintf( __( "There is no settings page '%s' on your website.", 'mb-rest-api' ), $settings_pages_id ) // phpcs:ignore
+			'settings_page_not_exists',
+			// Translators: %s - settings page id.
+			sprintf( __( "Settings page '%s' does not exist.", 'mb-rest-api' ), $id )
 		);
 	}
 }
