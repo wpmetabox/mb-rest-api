@@ -42,15 +42,15 @@ abstract class Base {
 	}
 
 	public function get( array $response_data ): array {
-		return $this->get_values( $response_data['id'], [ 'object_type' => $this->object_type ] );
+		return $this->get_values( $response_data['id'] );
 	}
 
 	protected function get_types(): array {
 		return [ $this->object_type ];
 	}
 
-	protected function get_fields( $type_or_id, $args ): array {
-		$fields = rwmb_get_object_fields( $type_or_id, $args['object_type'] );
+	protected function get_fields( $type_or_id ): array {
+		$fields = rwmb_get_object_fields( $type_or_id, $this->object_type );
 
 		// Remove fields with no values.
 		$fields = array_filter( $fields, function ( $field ) {
@@ -69,14 +69,15 @@ abstract class Base {
 	 * Get all fields' values from list of meta boxes.
 	 *
 	 * @param int|string $object_id  Object ID.
-	 * @param array      $args       Additional params for helper function.
-	 *
-	 * @return array
+	 * @param array      $fields     List of fields.
 	 */
-	protected function get_values( $object_id, $args, $fields = [] ): array {
-		$fields = $fields ?: $this->get_fields( $object_id, $args );
+	protected function get_values( $object_id, $fields = [] ): array {
+		$fields = $fields ?: $this->get_fields( $object_id );
 
 		$values = [];
+		$args   = [
+			'object_type' => $this->object_type,
+		];
 		foreach ( $fields as $field ) {
 			$value = rwmb_get_value( $field['id'], $args, $object_id );
 			$value = $this->normalize_value( $field, $value );

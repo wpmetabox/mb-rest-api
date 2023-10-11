@@ -33,9 +33,8 @@ class Setting extends Base {
 		}
 
 		$option_name = $this->get_option_name_from_settings_page_id( $settings_pages_id );
-		$args        = [ 'object_type' => 'setting' ];
-		$fields      = $this->get_fields( $settings_pages_id, $args );
-		return $this->get_values( $option_name, $args, $fields );
+		$fields      = $this->get_fields( $settings_pages_id );
+		return $this->get_values( $option_name, $fields );
 	}
 
 	public function update_settings_page( WP_REST_Request $request ) {
@@ -52,7 +51,7 @@ class Setting extends Base {
 
 		$this->update_values( $data, $option_name, $option_name, 'setting' );
 
-		return $this->get( $request );
+		return $this->get_settings_page( $request );
 	}
 
 	private function get_option_name_from_settings_page_id( string $settings_pages_id ) {
