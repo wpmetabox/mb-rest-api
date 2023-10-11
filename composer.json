@@ -21,8 +21,13 @@
     {
       "name": "Tran Ngoc Tuan Anh",
       "email": "anhtnt@elightup.com",
-      "homepage": "https://metabox.io",
+      "homepage": "https://deluxeblogtips.com",
       "role": "Developer"
     }
-  ]
+  ],
+  "autoload": {
+    "psr-4": {
+      "MetaBox\\RestApi\\": "src/"
+    }
+  }
 }
