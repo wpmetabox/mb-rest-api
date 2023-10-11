@@ -1,7 +1,7 @@
 <?php
 add_filter( 'rwmb_meta_boxes', function( $meta_boxes ) {
 	$meta_boxes[] = [
-		'title' => 'In REST',
+		'title'  => 'In REST',
 		'fields' => [
 			'Name',
 			[

@@ -6,18 +6,17 @@ use WP_REST_Request;
 
 class Setting extends Base {
 	public function init() {
-		register_rest_route( self::NAMESPACE, '/settings-page/', array(
+		register_rest_route( self::NAMESPACE, '/settings-page/', [
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'get_data' ],
-
 			'permission_callback' => [ $this, 'has_permission' ],
-		) );
+		] );
 
-		register_rest_route( self::NAMESPACE, '/settings-page/', array(
+		register_rest_route( self::NAMESPACE, '/settings-page/', [
 			'methods'             => WP_REST_Server::CREATABLE,
 			'callback'            => [ $this, 'update_data' ],
 			'permission_callback' => [ $this, 'has_permission' ],
-		) );
+		] );
 	}
 
 	public function has_permission( WP_REST_Request $request ) {
@@ -43,11 +42,7 @@ class Setting extends Base {
 	}
 
 	private function get_settings_page( WP_REST_Request $request ): array {
-		$id = $request->get_param( 'id' );
-		if ( ! $id ) {
-			$this->send_error_message( 'no_settings_page_id', __( 'No settings page id.', 'mb-rest-api' ) );
-		}
-
+		$id             = $request->get_param( 'id' );
 		$settings_pages = apply_filters( 'mb_settings_pages', [] );
 		foreach ( $settings_pages as $settings_page ) {
 			if ( $settings_page['id'] === $id ) {
