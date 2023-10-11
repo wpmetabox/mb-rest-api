@@ -49,7 +49,7 @@ class Setting extends Base {
 		$option_name = $this->get_option_name_from_settings_page_id( $settings_pages_id );
 		$data        = $request->get_param( 'data' );
 
-		$this->update_values( $data, $option_name, $option_name, 'setting' );
+		$this->update_values( $data, $option_name, $option_name );
 
 		return $this->get_settings_page( $request );
 	}

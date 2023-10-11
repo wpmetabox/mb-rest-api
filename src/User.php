@@ -9,6 +9,6 @@ class User extends Base {
 	 * @param object       $object User object.
 	 */
 	public function update( $data, $object ) {
-		$this->update_values( $data, $object->ID, 'user', 'user' );
+		$this->update_values( $data, $object->ID, 'user' );
 	}
 }

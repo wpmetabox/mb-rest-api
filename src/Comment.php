@@ -9,6 +9,6 @@ class Comment extends Base {
 	 * @param object       $object Comment object.
 	 */
 	public function update( $data, $object ) {
-		$this->update_values( $data, $object->comment_ID, 'comment', 'comment' );
+		$this->update_values( $data, $object->comment_ID, 'comment' );
 	}
 }

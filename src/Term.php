@@ -9,7 +9,7 @@ class Term extends Base {
 	 * @param object       $object Term object.
 	 */
 	public function update( $data, $object ) {
-		$this->update_values( $data, $object->term_id, $object->taxonomy, 'term' );
+		$this->update_values( $data, $object->term_id, $object->taxonomy );
 	}
 
 	protected function get_types(): array {

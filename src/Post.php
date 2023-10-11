@@ -9,7 +9,7 @@ class Post extends Base {
 	 * @param object       $object Post object.
 	 */
 	public function update( $data, $object ) {
-		$this->update_values( $data, $object->ID, $object->post_type, 'post' );
+		$this->update_values( $data, $object->ID, $object->post_type );
 	}
 
 	protected function get_types(): array {

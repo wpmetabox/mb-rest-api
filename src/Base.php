@@ -149,16 +149,16 @@ abstract class Base {
 		return $value;
 	}
 
-	protected function update_values( $data, $object_id, $object_subtype, $object_type ) {
+	protected function update_values( $data, $object_id, $object_subtype ) {
 		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
 
 		foreach ( $data as $field_id => $value ) {
-			$field = rwmb_get_registry( 'field' )->get( $field_id, $object_subtype, $object_type );
+			$field = rwmb_get_registry( 'field' )->get( $field_id, $object_subtype, $this->object_type );
 			$this->check_field_exists( $field_id, $field );
 			$this->update_value( $field, $value, $object_id );
 		}
 
-		rwmb_request()->set_post_data( [ 'object_type' => $object_type ] );
+		rwmb_request()->set_post_data( [ 'object_type' => $this->object_type ] );
 		do_action( 'rwmb_after_save_post', $object_id );
 	}
 
