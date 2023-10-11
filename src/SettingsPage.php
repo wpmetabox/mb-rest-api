@@ -66,7 +66,7 @@ class SettingsPage extends Base {
 		$this->send_error_message(
 			'no_settings_page',
 			// Translators: %s - Settings page ID.
-			sprintf( __( 'There is no settings page "%s" on your website.', 'mb-rest-api' ), $settings_pages_id )
+			sprintf( __( "There is no settings page '%s' on your website.", 'mb-rest-api' ), $settings_pages_id ) // phpcs:ignore
 		);
 	}
 }

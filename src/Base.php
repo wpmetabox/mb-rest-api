@@ -170,7 +170,7 @@ abstract class Base {
 		$this->send_error_message(
 			'field_not_exists',
 			// Translators: %s - Field ID.
-			sprintf( __( 'Field "%s" does not exists', 'mb-rest-api' ), $field_id )
+			sprintf( __( "Field '%s' does not exists.", 'mb-rest-api' ), $field_id )
 		);
 	}
 
