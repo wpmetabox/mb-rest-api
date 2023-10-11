@@ -41,28 +41,12 @@ abstract class Base {
 		] );
 	}
 
-	public function get( array $response_data ): array {
-		return $this->get_values( $response_data['id'] );
-	}
-
 	protected function get_types(): array {
 		return [ $this->object_type ];
 	}
 
-	protected function get_fields( $type_or_id ): array {
-		$fields = rwmb_get_object_fields( $type_or_id, $this->object_type );
-
-		// Remove fields with no values.
-		$fields = array_filter( $fields, function ( $field ) {
-			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
-		} );
-
-		// Remove fields with hide_from_rest = true.
-		$fields = array_filter( $fields, function ( $field ) {
-			return empty( $field['hide_from_rest'] );
-		} );
-
-		return $fields;
+	public function get( array $response_data ): array {
+		return $this->get_values( $response_data['id'] );
 	}
 
 	/**
@@ -86,6 +70,22 @@ abstract class Base {
 		}
 
 		return $values;
+	}
+
+	protected function get_fields( $type_or_id ): array {
+		$fields = rwmb_get_object_fields( $type_or_id, $this->object_type );
+
+		// Remove fields with no values.
+		$fields = array_filter( $fields, function ( $field ) {
+			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
+		} );
+
+		// Remove fields with hide_from_rest = true.
+		$fields = array_filter( $fields, function ( $field ) {
+			return empty( $field['hide_from_rest'] );
+		} );
+
+		return $fields;
 	}
 
 	/**
