@@ -32,5 +32,6 @@ if ( ! function_exists( 'mb_rest_api_load' ) ) {
 	function mb_rest_api_load() {
 		new MetaBox\RestApi\SettingsPage;
 		new MetaBox\RestApi\Post;
+		new MetaBox\RestApi\Term;
 	}
 }
