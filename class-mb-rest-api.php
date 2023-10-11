@@ -58,14 +58,14 @@ class MB_Rest_API {
 
 	public function register_routes() {
 		register_rest_route( self::NAMESPACE, '/settings-page/', array(
-			'methods' => WP_REST_Server::READABLE,
-			'callback' => [ $this, 'get_settings_meta' ],
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => [ $this, 'get_settings_meta' ],
 			'permission_callback' => [ $this, 'has_permission' ],
 		) );
 
 		register_rest_route( self::NAMESPACE, '/settings-page/', array(
-			'methods' => WP_REST_Server::CREATABLE,
-			'callback' => [ $this, 'update_settings_meta' ],
+			'methods'             => WP_REST_Server::CREATABLE,
+			'callback'            => [ $this, 'update_settings_meta' ],
 			'permission_callback' => [ $this, 'has_permission' ],
 		) );
 	}
@@ -89,7 +89,7 @@ class MB_Rest_API {
 		}
 
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'post' ] );
-		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $post_type ) {
+		$meta_boxes = array_filter( $meta_boxes, function ( $meta_box ) use ( $post_type ) {
 			return in_array( $post_type, $meta_box->post_types, true );
 		} );
 
@@ -130,7 +130,7 @@ class MB_Rest_API {
 		}
 
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'term' ] );
-		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $term ) {
+		$meta_boxes = array_filter( $meta_boxes, function ( $meta_box ) use ( $term ) {
 			return in_array( $term->taxonomy, $meta_box->taxonomies, true );
 		} );
 
@@ -167,7 +167,7 @@ class MB_Rest_API {
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'user' ] );
 
 		// Ignore MB User Profile meta boxes.
-		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) {
+		$meta_boxes = array_filter( $meta_boxes, function ( $meta_box ) {
 			return ! in_array( $meta_box->id, [
 				'rwmb-user-register',
 				'rwmb-user-login',
@@ -244,62 +244,45 @@ class MB_Rest_API {
 		}
 
 		$meta_boxes = rwmb_get_registry( 'meta_box' )->get_by( [ 'object_type' => 'setting' ] );
-		$meta_boxes = array_filter( $meta_boxes, function( $meta_box ) use ( $settings_pages_id ) {
+		$meta_boxes = array_filter( $meta_boxes, function ( $meta_box ) use ( $settings_pages_id ) {
 			return in_array( $settings_pages_id, $meta_box->settings_pages, true );
 		} );
 
 		$option_name = $this->get_option_name_from_settings_page_id( $settings_pages_id );
-		if ( ! $option_name ) {
-			$this->send_error_message(
-				'mb_rest_api_empty_option_name',
-				sprintf( __( 'Option name of settings page %s is empty', 'mb-rest-api' ), $settings_pages_id ),
-			);
-		}
-
-		return $this->get_values( $meta_boxes, $option_name, ['object_type' => 'setting'] );
+		return $this->get_values( $meta_boxes, $option_name, [ 'object_type' => 'setting' ] );
 	}
 
-	private function get_option_name_from_settings_page_id( string $settings_pages_id ) : string {
+	private function get_option_name_from_settings_page_id( string $settings_pages_id ) {
 		$settings_pages = apply_filters( 'mb_settings_pages', [] );
-		if ( empty( $settings_pages ) ) {
-			$this->send_error_message(
-				'mb_rest_api_empty_settings_page',
-				__( 'There is no settings page in your system', 'mb-rest-api' ),
-			);
-		}
-
 		foreach ( $settings_pages as $settings_page ) {
 			if ( $settings_page['id'] === $settings_pages_id ) {
 				return $settings_page['option_name'] ?: $settings_page['id'];
 			}
 		}
 
-		return '';
+		$this->send_error_message(
+			'no_settings_page',
+			sprintf( __( 'There is no settings page "%s" on your website.', 'mb-rest-api' ), $settings_pages_id )
+		);
 	}
 
 	/**
 	 * Update settings page meta for the rest API.
 	 */
-	public function update_settings_meta( $data ) {
-		$data = is_string( $data['setting'] ) ? json_decode( $data['setting'], true ) : $data;
-
-		$settings_pages_id = $data['id'];
-		if ( !  $settings_pages_id ) {
+	public function update_settings_meta( WP_REST_Request $request ) {
+		$settings_pages_id = $request->get_param( 'id' );
+		if ( ! $settings_pages_id ) {
 			$this->send_error_message(
-				'mb_rest_api_settings_page_not_exsists',
-				sprintf( __( 'Settings page %s does not exists', 'mb-rest-api' ), $settings_pages_id ),
+				'no_settings_page',
+				__( 'No settings page.', 'mb-rest-api' )
 			);
 		}
 
 		$option_name = $this->get_option_name_from_settings_page_id( $settings_pages_id );
-		if ( ! $option_name ) {
-			$this->send_error_message(
-				'mb_rest_api_empty_option_name',
-				sprintf( __( 'Option name of settings page %s is empty', 'mb-rest-api' ), $settings_pages_id ),
-			);
-		}
 
-		unset( $data['id'] );
+		$data = $request->get_param( 'data' );
+		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
+
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $option_name, 'setting' );
 			$this->check_field_exists( $field_id, $field );
@@ -308,7 +291,8 @@ class MB_Rest_API {
 
 		rwmb_request()->set_post_data( [ 'object_type' => 'setting' ] );
 		do_action( 'rwmb_after_save_post', $option_name );
-		wp_send_json_success();
+
+		return $this->get_settings_meta( $request );
 	}
 
 	/**
@@ -366,12 +350,12 @@ class MB_Rest_API {
 		}
 
 		// Remove fields with no values.
-		$fields = array_filter( $fields, function( $field ) {
+		$fields = array_filter( $fields, function ( $field ) {
 			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
 		} );
 
 		// Remove fields with hide_from_rest = true.
-		$fields = array_filter( $fields, function( $field ) {
+		$fields = array_filter( $fields, function ( $field ) {
 			return empty( $field['hide_from_rest'] );
 		} );
 
@@ -453,8 +437,8 @@ class MB_Rest_API {
 		}
 
 		$this->send_error_message(
-			'mb_rest_api_field_not_exists',
-			sprintf( __( 'Field %s does not exists', 'mb-rest-api' ), $field_id ),
+			'field_not_exists',
+			sprintf( __( 'Field "%s" does not exists', 'mb-rest-api' ), $field_id ),
 		);
 	}
 
@@ -462,7 +446,7 @@ class MB_Rest_API {
 		// Send an error, mimic how WordPress returns an error for a Rest request.
 		status_header( $status_code );
 
-		$error = new WP_Error(
+		$error    = new WP_Error(
 			$id,
 			$message,
 			[ 'status' => $status_code ]
