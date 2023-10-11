@@ -191,7 +191,7 @@ abstract class Base {
 		);
 	}
 
-	protected function send_error_message( $id, $message, $status_code = 500 ) {
+	protected function send_error_message( $id, $message, $status_code = 400 ) {
 		// Send an error, mimic how WordPress returns an error for a Rest request.
 		status_header( $status_code );
 
