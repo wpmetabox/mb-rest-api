@@ -42,7 +42,11 @@ class Setting extends Base {
 	}
 
 	private function get_settings_page( WP_REST_Request $request ): array {
-		$id             = $request->get_param( 'id' );
+		$id = $request->get_param( 'id' );
+		if ( ! $id ) {
+			$this->send_error_message( 'no_settings_page_id', __( 'No settings page id.', 'mb-rest-api' ) );
+		}
+
 		$settings_pages = apply_filters( 'mb_settings_pages', [] );
 		foreach ( $settings_pages as $settings_page ) {
 			if ( $settings_page['id'] === $id ) {
