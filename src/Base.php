@@ -45,8 +45,8 @@ abstract class Base {
 		return [ $this->object_type ];
 	}
 
-	public function get( array $response_data ): array {
-		return $this->get_values( $response_data['id'] );
+	public function get( array $data ): array {
+		return $this->get_values( $data['id'] );
 	}
 
 	/**

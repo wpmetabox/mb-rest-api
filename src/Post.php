@@ -1,15 +1,11 @@
 <?php
 namespace MetaBox\RestApi;
 
+use WP_Post;
+
 class Post extends Base {
-	/**
-	 * Update post meta for the rest API.
-	 *
-	 * @param string|array $data   Post meta values in either JSON or array format.
-	 * @param object       $object Post object.
-	 */
-	public function update( $data, $object ) {
-		$this->update_values( $data, $object->ID, $object->post_type );
+	public function update( $data, WP_Post $post ) {
+		$this->update_values( $data, $post->ID, $post->post_type );
 	}
 
 	protected function get_types(): array {

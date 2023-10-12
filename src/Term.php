@@ -1,15 +1,11 @@
 <?php
 namespace MetaBox\RestApi;
 
+use WP_Term;
+
 class Term extends Base {
-	/**
-	 * Update term meta for the rest API.
-	 *
-	 * @param string|array $data   Term meta values in either JSON or array format.
-	 * @param object       $object Term object.
-	 */
-	public function update( $data, $object ) {
-		$this->update_values( $data, $object->term_id, $object->taxonomy );
+	public function update( $data, WP_Term $term ) {
+		$this->update_values( $data, $term->term_id, $term->taxonomy );
 	}
 
 	protected function get_types(): array {

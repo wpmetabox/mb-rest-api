@@ -1,14 +1,10 @@
 <?php
 namespace MetaBox\RestApi;
 
+use WP_Comment;
+
 class Comment extends Base {
-	/**
-	 * Update comment meta for the rest API.
-	 *
-	 * @param string|array $data   Comment meta values in either JSON or array format.
-	 * @param object       $object Comment object.
-	 */
-	public function update( $data, $object ) {
-		$this->update_values( $data, $object->comment_ID, 'comment' );
+	public function update( $data, WP_Comment $comment ) {
+		$this->update_values( $data, $comment->comment_ID, 'comment' );
 	}
 }
