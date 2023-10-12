@@ -55,7 +55,7 @@ abstract class Base {
 	 * @param int|string $object_id  Object ID.
 	 * @param array      $fields     List of fields.
 	 */
-	protected function get_values( $object_id, $fields = [] ): array {
+	protected function get_values( $object_id, array $fields = [] ): array {
 		$fields = $fields ?: $this->get_fields( $object_id );
 
 		$values = [];
@@ -75,47 +75,24 @@ abstract class Base {
 	protected function get_fields( $type_or_id ): array {
 		$fields = rwmb_get_object_fields( $type_or_id, $this->object_type );
 
-		// Remove fields with no values.
-		$fields = array_filter( $fields, function ( $field ) {
-			return ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
+		// Remove fields with with hide_from_rest = true or has no values.
+		return array_filter( $fields, function ( $field ) {
+			return empty( $field['hide_from_rest'] ) && ! empty( $field['id'] ) && ! in_array( $field['type'], $this->no_value_fields, true );
 		} );
-
-		// Remove fields with hide_from_rest = true.
-		$fields = array_filter( $fields, function ( $field ) {
-			return empty( $field['hide_from_rest'] );
-		} );
-
-		return $fields;
 	}
 
-	/**
-	 * Normalize value.
-	 *
-	 * @param  array $field Field settings.
-	 * @param  mixed $value Field value.
-	 * @return mixed
-	 */
-	private function normalize_value( $field, $value ) {
+	private function normalize_value( array $field, $value ) {
 		$value = $this->normalize_group_value( $field, $value );
 		$value = $this->normalize_media_value( $field, $value );
 
 		return $value;
 	}
 
-	/**
-	 * Normalize group value.
-	 *
-	 * @param  array $field Field settings.
-	 * @param  mixed $value Field value.
-	 * @return mixed
-	 */
-	private function normalize_group_value( $field, $value ) {
+	private function normalize_group_value( array $field, $value ) {
 		if ( 'group' !== $field['type'] ) {
 			return $value;
 		}
-		if ( isset( $value['_state'] ) ) {
-			unset( $value['_state'] );
-		}
+		unset( $value['_state'] );
 
 		foreach ( $field['fields'] as $subfield ) {
 			if ( empty( $subfield['id'] ) || empty( $value[ $subfield['id'] ] ) ) {
@@ -130,23 +107,9 @@ abstract class Base {
 		return $value;
 	}
 
-	/**
-	 * Normalize media value.
-	 *
-	 * @param  array $field Field settings.
-	 * @param  mixed $value Field value.
-	 * @return mixed
-	 */
-	private function normalize_media_value( $field, $value ) {
-		/*
-		 * Make sure values of file/image fields are always indexed 0, 1, 2, ...
-		 * @link https://github.com/wpmetabox/mb-rest-api/commit/31aa8fa445c188e8a71ebff80027acbcaa0fd268
-		 */
-		if ( is_array( $value ) && in_array( $field['type'], $this->media_fields, true ) ) {
-			$value = array_values( $value );
-		}
-
-		return $value;
+	private function normalize_media_value( array $field, $value ) {
+		// Make sure values of file/image fields are always indexed 0, 1, 2, ...
+		return is_array( $value ) && in_array( $field['type'], $this->media_fields, true ) ? array_values( $value ) : $value;
 	}
 
 	protected function update_values( $data, $object_id, $object_subtype ) {
@@ -162,14 +125,7 @@ abstract class Base {
 		do_action( 'rwmb_after_save_post', $object_id );
 	}
 
-	/**
-	 * Update field value.
-	 *
-	 * @param array $field     Field data.
-	 * @param mixed $value     Field value.
-	 * @param int   $object_id Object ID.
-	 */
-	protected function update_value( $field, $value, $object_id ) {
+	protected function update_value( array $field, $value, $object_id ) {
 		$old = RWMB_Field::call( $field, 'raw_meta', $object_id );
 
 		$new = RWMB_Field::process_value( $value, $object_id, $field );
@@ -184,22 +140,15 @@ abstract class Base {
 			return;
 		}
 
-		$this->send_error_message(
-			'field_not_exists',
-			// Translators: %s - Field ID.
-			sprintf( __( "Field '%s' does not exists.", 'mb-rest-api' ), $field_id )
-		);
+		// Translators: %s - Field ID.
+		$this->send_error_message( 'field_not_exists', sprintf( __( "Field '%s' does not exists.", 'mb-rest-api' ), $field_id ) );
 	}
 
 	protected function send_error_message( $id, $message, $status_code = 400 ) {
 		// Send an error, mimic how WordPress returns an error for a Rest request.
 		status_header( $status_code );
 
-		$error    = new WP_Error(
-			$id,
-			$message,
-			[ 'status' => $status_code ]
-		);
+		$error    = new WP_Error( $id, $message, [ 'status' => $status_code ] );
 		$response = rest_convert_error_to_response( $error );
 
 		echo wp_json_encode( $response->data );
