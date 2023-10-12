@@ -1,0 +1,16 @@
+/.git
+/.github
+/node_modules
+
+.DS_Store
+Thumbs.db
+
+/tests
+
+.distignore
+.gitattributes
+.gitignore
+composer.json
+composer.lock
+phpcs.xml
+readme.md
