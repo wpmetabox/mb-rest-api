@@ -59,9 +59,7 @@ abstract class Base {
 		$fields = $fields ?: $this->get_fields( $object_id );
 
 		$values = [];
-		$args   = [
-			'object_type' => $this->object_type,
-		];
+		$args   = [ 'object_type' => $this->object_type ];
 		foreach ( $fields as $field ) {
 			$value = rwmb_get_value( $field['id'], $args, $object_id );
 			$value = $this->normalize_value( $field, $value );

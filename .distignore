@@ -12,5 +12,6 @@ Thumbs.db
 .gitignore
 composer.json
 composer.lock
+package-lock.json
 phpcs.xml
 readme.md

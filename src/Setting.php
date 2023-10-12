@@ -54,10 +54,7 @@ class Setting extends Base {
 			}
 		}
 
-		$this->send_error_message(
-			'settings_page_not_exists',
-			// Translators: %s - settings page id.
-			sprintf( __( "Settings page '%s' does not exist.", 'mb-rest-api' ), $id )
-		);
+		// Translators: %s - settings page id.
+		$this->send_error_message( 'settings_page_not_exists', sprintf( __( "Settings page '%s' does not exist.", 'mb-rest-api' ), $id ) );
 	}
 }
