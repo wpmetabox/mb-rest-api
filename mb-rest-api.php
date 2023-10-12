@@ -20,15 +20,20 @@ if ( ! function_exists( 'mb_rest_api_load' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/post.php';
 	require_once ABSPATH . 'wp-admin/includes/comment.php';
 
+	if ( file_exists( __DIR__ . '/vendor' ) ) {
+		require __DIR__ . '/vendor/autoload.php';
+	}
+
 	add_action( 'init', 'mb_rest_api_load', 5 );
 
 	/**
 	 * Loader function for the plugin files.
 	 */
 	function mb_rest_api_load() {
-		require_once __DIR__ . '/class-mb-rest-api.php';
-
-		$mb_rest_api = new MB_Rest_API();
-		add_action( 'rest_api_init', [ $mb_rest_api, 'init' ] );
+		new MetaBox\RestApi\Post;
+		new MetaBox\RestApi\Term;
+		new MetaBox\RestApi\User;
+		new MetaBox\RestApi\Comment;
+		new MetaBox\RestApi\Setting;
 	}
 }
