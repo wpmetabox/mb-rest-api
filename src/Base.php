@@ -90,6 +90,10 @@ abstract class Base {
 		if ( 'group' !== $field['type'] ) {
 			return $value;
 		}
+		if ( ! is_array( $value ) ) {
+			$value = [];
+		}
+
 		unset( $value['_state'] );
 
 		foreach ( $field['fields'] as $subfield ) {
