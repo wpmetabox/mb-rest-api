@@ -3,8 +3,8 @@ Contributors: metabox, rilwis
 Donate link: https://metabox.io/pricing/
 Tags: meta-box, custom fields, custom field, meta, meta-boxes, field, rest, rest api, api, wp api, wp rest api, json
 Requires at least: 4.1
-Tested up to: 6.3.1
-Stable tag: 2.0.0
+Tested up to: 6.3.2
+Stable tag: 2.0.1
 Requires PHP: 7.0
 License: GPLv2 or later
 
@@ -48,6 +48,9 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 == Screenshots ==
 
 == Changelog ==
+
+= 2.0.1 - 2022-10-14 =
+- Ensure group value is always an array. Fix PHP warning when group has no values.
 
 = 2.0.0 - 2022-10-11 =
 - Complete rewrite the plugin for clarity and maintainability
