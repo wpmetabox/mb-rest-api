@@ -4,8 +4,14 @@ namespace MetaBox\RestApi;
 use WP_Post;
 
 class Post extends Base {
-	public function update( $data, WP_Post $post ) {
-		$this->update_values( $data, $post->ID, $post->post_type );
+	public function update( $data, $post ) {
+		if ( property_exists( $post, 'post_type' ) && 'product' === $post->post_type ) {
+			$post_id = $post->get_id();
+		} else {
+			$post_id = $post->ID;
+		}
+
+		$this->update_values( $data, $post_id, $post->post_type );
 	}
 
 	protected function get_types(): array {
