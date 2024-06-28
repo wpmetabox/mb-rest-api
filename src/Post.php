@@ -5,7 +5,7 @@ use WP_Post;
 
 class Post extends Base {
 	public function update( $data, $post ) {
-		if ( $post->post_type && 'product' === $post->post_type ) {
+		if ( property_exists( $post, 'post_type' ) && 'product' === $post->post_type ) {
 			$post_id = $post->get_id();
 		} else {
 			$post_id = $post->ID;
