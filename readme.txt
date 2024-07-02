@@ -1,10 +1,10 @@
 === MB Rest API ===
-Contributors: metabox, rilwis
+Contributors: metabox, rilwis, barcavn2
 Donate link: https://metabox.io/pricing/
-Tags: meta-box, custom fields, custom field, meta, meta-boxes, field, rest, rest api, api, wp api, wp rest api, json
+Tags: meta box, custom fields, rest api
 Requires at least: 4.1
-Tested up to: 6.3.2
-Stable tag: 2.0.1
+Tested up to: 6.5.5
+Stable tag: 2.0.2
 Requires PHP: 7.0
 License: GPLv2 or later
 
@@ -49,22 +49,25 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 
 == Changelog ==
 
-= 2.0.1 - 2022-10-14 =
+= 2.0.2 - 2024-07-02 =
+- Fix not updating WooCommerce products
+
+= 2.0.1 - 2023-10-14 =
 - Ensure group value is always an array. Fix PHP warning when group has no values.
 
-= 2.0.0 - 2022-10-11 =
+= 2.0.0 - 2023-10-11 =
 - Complete rewrite the plugin for clarity and maintainability
 - Add support for settings page, allow you to get and update data for settings pages
 - Show errors when updating non-existing fields
 
-= 1.5.1 - 2022-08-16 =
+= 1.5.1 - 2023-08-16 =
 - Fix cannot update user meta in a custom table (#18)
 
-= 1.5.0 - 2022-07-29
+= 1.5.0 - 2023-07-29
 - Remove fields in the Rest API responses with hide_from_rest = true
 - Do not show MB User Profile fields in the Rest API responses
 
-= 1.4.1 - 2022-05-17 =
+= 1.4.1 - 2023-05-17 =
 - Fix not working with `_filter`.
 
 = 1.4.0 - 2019-12-12 =
