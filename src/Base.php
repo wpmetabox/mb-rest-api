@@ -45,12 +45,8 @@ abstract class Base {
 		return [ $this->object_type ];
 	}
 
-	public function get( array $data ): array {
-		if ( empty( $data['id'] ) ) {
-			return [];
-		}
-
-		return $this->get_values( $data['id'] );
+	public function get( array $object ): array {
+		return empty( $object['id'] ) ? [] : $this->get_values( $object['id'] );
 	}
 
 	/**
