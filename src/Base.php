@@ -46,6 +46,10 @@ abstract class Base {
 	}
 
 	public function get( array $data ): array {
+		if ( empty( $data['id'] ) ) {
+			return [];
+		}
+
 		return $this->get_values( $data['id'] );
 	}
 
