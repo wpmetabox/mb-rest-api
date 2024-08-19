@@ -3,8 +3,8 @@ Contributors: metabox, rilwis, barcavn2
 Donate link: https://metabox.io/pricing/
 Tags: meta box, custom fields, rest api
 Requires at least: 4.1
-Tested up to: 6.6
-Stable tag: 2.0.3
+Tested up to: 6.6.1
+Stable tag: 2.0.4
 Requires PHP: 7.0
 License: GPLv2 or later
 
@@ -49,7 +49,10 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 
 == Changelog ==
 
-- 2.0.3 - 2024-07-22 =
+= 2.0.4 - 2024-08-19 =
+Fix running PHP Codesniffer when installing & autoload the plugin's main file via Composer
+
+= 2.0.3 - 2024-07-22 =
 - Fix PHP warning in WordPress 6.6
 
 = 2.0.2 - 2024-07-02 =
