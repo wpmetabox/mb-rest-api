@@ -2,6 +2,9 @@
 
 [**MB Rest API**](https://metabox.io/plugins/mb-rest-api/) is an extension for [Meta Box](https://metabox.io) which helps you to get and update custom fields' values (meta value) from posts, pages, custom post types, terms via the WordPress REST API.
 
+> **Meta Box Lite**<br>
+> We recommend using [Meta Box Lite](https://metabox.io/lite/), a feature-rich free UI version of Meta Box that provides UI and all free features for managing custom fields and dynamic content on WordPress, including post types, taxonomies, custom fields, and relationships.
+
 ### Plugin Links
 
 - [Project Page](https://metabox.io/plugins/mb-rest-api/)
