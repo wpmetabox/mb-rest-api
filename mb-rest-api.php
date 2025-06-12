@@ -34,5 +34,7 @@ if ( ! function_exists( 'mb_rest_api_load' ) ) {
 		new MetaBox\RestApi\User;
 		new MetaBox\RestApi\Comment;
 		new MetaBox\RestApi\Setting;
+
+		load_plugin_textdomain( 'mb-rest-api', false, plugin_basename( __DIR__ ) . '/languages' );
 	}
 }

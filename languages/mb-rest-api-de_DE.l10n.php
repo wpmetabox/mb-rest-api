@@ -1,0 +1,2 @@
+<?php
+return ['domain'=>'mb-rest-api','plural-forms'=>'nplurals=2; plural=n != 1;','language'=>'de_DE','project-id-version'=>'MB REST API','pot-creation-date'=>'2025-04-07 19:39+0000','po-revision-date'=>'2025-04-07 19:41+0000','x-generator'=>'Loco https://localise.biz/','messages'=>['Field \'%s\' does not exists.'=>'Das Feld \'%s\' existiert nicht.','No settings page id.'=>'Keine Einstellungsseiten-ID.','Settings page \'%s\' does not exist.'=>'Die Einstellungsseite \'%s\' existiert nicht.']];
