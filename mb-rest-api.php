@@ -29,12 +29,12 @@ if ( ! function_exists( 'mb_rest_api_load' ) ) {
 	add_action( 'init', 'mb_rest_api_load', 5 );
 
 	function mb_rest_api_load() {
+		load_plugin_textdomain( 'mb-rest-api', false, plugin_basename( __DIR__ ) . '/languages' );
+
 		new MetaBox\RestApi\Post;
 		new MetaBox\RestApi\Term;
 		new MetaBox\RestApi\User;
 		new MetaBox\RestApi\Comment;
 		new MetaBox\RestApi\Setting;
-
-		load_plugin_textdomain( 'mb-rest-api', false, plugin_basename( __DIR__ ) . '/languages' );
 	}
 }
