@@ -145,14 +145,28 @@ abstract class Base {
 			return $item[ $subfield_id ];
 		}
 		
-		// Get prefix from field config
-		$prefix = $field['prefix'] ?? '';
+		// Extract prefix from group field ID
+		// Group field: mb_user_agb_akzeptiert
+		// Sub-field: mb_user_agb_akzeptiert_datum
+		// Prefix: mb_user_
+		$group_id = $field['id'];
 		
-		// Try stripping the prefix
-		if ( $prefix && str_starts_with( $subfield_id, $prefix ) ) {
-			$short_id = substr( $subfield_id, strlen( $prefix ) );
-			if ( isset( $item[ $short_id ] ) ) {
-				return $item[ $short_id ];
+		// Find common prefix between group ID and subfield ID
+		if ( str_starts_with( $subfield_id, $group_id . '_' ) ) {
+			// Extract prefix from group_id
+			// Find last underscore before the actual field name
+			$parts = explode( '_', $group_id );
+			
+			// Try different prefix lengths
+			for ( $i = count( $parts ); $i > 0; $i-- ) {
+				$prefix = implode( '_', array_slice( $parts, 0, $i ) ) . '_';
+				
+				if ( str_starts_with( $subfield_id, $prefix ) ) {
+					$short_id = substr( $subfield_id, strlen( $prefix ) );
+					if ( isset( $item[ $short_id ] ) ) {
+						return $item[ $short_id ];
+					}
+				}
 			}
 		}
 		
@@ -167,14 +181,65 @@ abstract class Base {
 	protected function update_values( $data, $object_id, $object_subtype ) {
 		$data = is_string( $data ) ? json_decode( $data, true ) : $data;
 
+		// Store group fields with prefixed values for later restoration
+		$group_fields_to_restore = [];
+
 		foreach ( $data as $field_id => $value ) {
 			$field = rwmb_get_registry( 'field' )->get( $field_id, $object_subtype, $this->object_type );
 			$this->check_field_exists( $field_id, $field );
+			
+			// Store original prefixed value for group fields
+			if ( 'group' === $field['type'] && is_array( $value ) ) {
+				$prefixed_value = $this->add_prefix_to_group_value( $field, $value );
+				$group_fields_to_restore[ $field_id ] = [
+					'field' => $field,
+					'value' => $prefixed_value
+				];
+			}
+			
 			$this->update_value( $field, $value, $object_id );
 		}
 
 		rwmb_request()->set_post_data( [ 'object_type' => $this->object_type ] );
 		do_action( 'rwmb_after_save_post', $object_id );
+
+		// After all hooks have run, restore prefixed values to custom table
+		foreach ( $group_fields_to_restore as $field_id => $data ) {
+			$field = $data['field'];
+			$value = $data['value'];
+			
+			// Check if storage exists
+			if ( empty( $field['storage'] ) ) {
+				continue;
+			}
+			
+			$storage = $field['storage'];
+			
+			// Update cache
+			$storage->update( $object_id, $field['id'], $value );
+			
+			// Directly update database row (bypass cache flush)
+			if ( method_exists( $storage, 'table' ) || isset( $storage->table ) ) {
+				$table = $storage->table;
+				
+				// Get current row from cache
+				$row = \MetaBox\CustomTable\Cache::get( $object_id, $table );
+				
+				// Serialize values
+				$row = array_map( function( $item ) {
+					return is_scalar( $item ) || is_null( $item ) ? $item : serialize( $item );
+				}, $row );
+				
+				// Update database directly
+				global $wpdb;
+				if ( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table WHERE ID = %d", $object_id ) ) > 0 ) {
+					$wpdb->update( $table, $row, [ 'ID' => $object_id ] );
+				} else {
+					$row['ID'] = $object_id;
+					$wpdb->insert( $table, $row );
+				}
+			}
+		}
 	}
 
 	protected function update_value( array $field, $value, $object_id ) {
@@ -185,6 +250,65 @@ abstract class Base {
 
 		// Call defined method to save meta value, if there's no methods, call common one.
 		RWMB_Field::call( $field, 'save', $new, $old, $object_id );
+	}
+
+	/**
+	 * Add full prefixes to group sub-field keys.
+	 * Converts: agb_akzeptiert_datum -> mb_user_agb_akzeptiert_datum
+	 */
+	private function add_prefix_to_group_value( array $field, $value ) {
+		if ( empty( $field['fields'] ) || ! is_array( $value ) ) {
+			return $value;
+		}
+
+		// Extract object type prefix (mb_user_, mb_post_, mb_term_, mb_)
+		$object_prefix = $this->extract_object_prefix( $field['id'] );
+		
+		if ( ! $object_prefix ) {
+			return $value;
+		}
+
+		// For each group item (clone entries)
+		foreach ( $value as $index => $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			
+			$prefixed_item = [];
+			
+			foreach ( $item as $key => $subvalue ) {
+				// Skip internal fields (starting with underscore)
+				if ( str_starts_with( $key, '_' ) ) {
+					$prefixed_item[ $key ] = $subvalue;
+					continue;
+				}
+				
+				// Add prefix to keys that don't already have it
+				if ( ! str_starts_with( $key, $object_prefix ) ) {
+					$prefixed_key = $object_prefix . $key;
+					$prefixed_item[ $prefixed_key ] = $subvalue;
+				} else {
+					// Already has prefix, keep as-is
+					$prefixed_item[ $key ] = $subvalue;
+				}
+			}
+			
+			$value[ $index ] = $prefixed_item;
+		}
+
+		return $value;
+	}
+
+	private function extract_object_prefix( $group_id ) {
+		$common_prefixes = ['mb_user_', 'mb_post_', 'mb_term_', 'mb_'];
+		
+		foreach ( $common_prefixes as $prefix ) {
+			if ( str_starts_with( $group_id, $prefix ) ) {
+				return $prefix;
+			}
+		}
+		
+		return '';
 	}
 
 	private function check_field_exists( $field_id, $field ) {
