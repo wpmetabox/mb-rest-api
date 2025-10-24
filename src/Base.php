@@ -115,41 +115,9 @@ abstract class Base {
 				}
 				
 				$subfield_id = $subfield['id'];
-				$subvalue = null;
 				
-				// First try with full ID (prefixed)
-				if ( isset( $item[ $subfield_id ] ) ) {
-					$subvalue = $item[ $subfield_id ];
-				} else {
-					// Try without prefix (strip prefix from subfield ID)
-					// For group fields, try common prefixes
-					$prefixes_to_try = [];
-					
-					// Try meta box prefix if available
-					if ( isset( $field['meta_box'] ) && isset( $field['meta_box']['prefix'] ) ) {
-						$prefixes_to_try[] = $field['meta_box']['prefix'];
-					}
-					
-					// Try field prefix if available
-					if ( isset( $field['prefix'] ) ) {
-						$prefixes_to_try[] = $field['prefix'];
-					}
-					
-					// Try common prefixes based on field ID
-					if ( str_starts_with( $subfield_id, 'mb_user_' ) ) {
-						$prefixes_to_try[] = 'mb_user_';
-					}
-					
-					foreach ( $prefixes_to_try as $prefix ) {
-						if ( $prefix && str_starts_with( $subfield_id, $prefix ) ) {
-							$short_id = substr( $subfield_id, strlen( $prefix ) );
-							if ( isset( $item[ $short_id ] ) ) {
-								$subvalue = $item[ $short_id ];
-								break;
-							}
-						}
-					}
-				}
+				// Try to get value: first with full ID, then with stripped prefix
+				$subvalue = $this->get_subfield_value( $item, $subfield_id );
 				
 				if ( $subvalue !== null ) {
 					$subvalue = $this->normalize_value( $subfield, $subvalue );
@@ -161,6 +129,32 @@ abstract class Base {
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Get sub-field value from item, trying both prefixed and non-prefixed keys.
+	 *
+	 * @param array  $item        The group item data.
+	 * @param string $subfield_id The sub-field ID (with prefix).
+	 * @return mixed|null The sub-field value or null if not found.
+	 */
+	private function get_subfield_value( array $item, string $subfield_id ) {
+		// Try with full ID first
+		if ( isset( $item[ $subfield_id ] ) ) {
+			return $item[ $subfield_id ];
+		}
+		
+		// Try stripping common prefixes
+		foreach ( ['mb_user_', 'mb_post_', 'mb_term_', 'mb_'] as $prefix ) {
+			if ( str_starts_with( $subfield_id, $prefix ) ) {
+				$short_id = substr( $subfield_id, strlen( $prefix ) );
+				if ( isset( $item[ $short_id ] ) ) {
+					return $item[ $short_id ];
+				}
+			}
+		}
+		
+		return null;
 	}
 
 	private function normalize_media_value( array $field, $value ) {
