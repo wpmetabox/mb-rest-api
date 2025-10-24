@@ -117,7 +117,7 @@ abstract class Base {
 				$subfield_id = $subfield['id'];
 				
 				// Try to get value: first with full ID, then with stripped prefix
-				$subvalue = $this->get_subfield_value( $item, $subfield_id );
+				$subvalue = $this->get_subfield_value( $item, $subfield_id, $field );
 				
 				if ( $subvalue !== null ) {
 					$subvalue = $this->normalize_value( $subfield, $subvalue );
@@ -136,21 +136,23 @@ abstract class Base {
 	 *
 	 * @param array  $item        The group item data.
 	 * @param string $subfield_id The sub-field ID (with prefix).
+	 * @param array  $field       The group field configuration.
 	 * @return mixed|null The sub-field value or null if not found.
 	 */
-	private function get_subfield_value( array $item, string $subfield_id ) {
+	private function get_subfield_value( array $item, string $subfield_id, array $field ) {
 		// Try with full ID first
 		if ( isset( $item[ $subfield_id ] ) ) {
 			return $item[ $subfield_id ];
 		}
 		
-		// Try stripping common prefixes
-		foreach ( ['mb_user_', 'mb_post_', 'mb_term_', 'mb_'] as $prefix ) {
-			if ( str_starts_with( $subfield_id, $prefix ) ) {
-				$short_id = substr( $subfield_id, strlen( $prefix ) );
-				if ( isset( $item[ $short_id ] ) ) {
-					return $item[ $short_id ];
-				}
+		// Get prefix from field config
+		$prefix = $field['prefix'] ?? '';
+		
+		// Try stripping the prefix
+		if ( $prefix && str_starts_with( $subfield_id, $prefix ) ) {
+			$short_id = substr( $subfield_id, strlen( $prefix ) );
+			if ( isset( $item[ $short_id ] ) ) {
+				return $item[ $short_id ];
 			}
 		}
 		
