@@ -95,15 +95,69 @@ abstract class Base {
 		}
 
 		unset( $value['_state'] );
+		
+		// If no sub-fields, return as-is
+		if ( empty( $field['fields'] ) ) {
+			return $value;
+		}
 
-		foreach ( $field['fields'] as $subfield ) {
-			if ( empty( $subfield['id'] ) || empty( $value[ $subfield['id'] ] ) ) {
+		// For each group item (clone entries)
+		foreach ( $value as $index => $item ) {
+			if ( ! is_array( $item ) ) {
 				continue;
 			}
-			$subvalue = $value[ $subfield['id'] ];
-			$subvalue = $this->normalize_value( $subfield, $subvalue );
-
-			$value[ $subfield['id'] ] = $subvalue;
+			
+			$normalized_item = [];
+			
+			foreach ( $field['fields'] as $subfield ) {
+				if ( empty( $subfield['id'] ) ) {
+					continue;
+				}
+				
+				$subfield_id = $subfield['id'];
+				$subvalue = null;
+				
+				// First try with full ID (prefixed)
+				if ( isset( $item[ $subfield_id ] ) ) {
+					$subvalue = $item[ $subfield_id ];
+				} else {
+					// Try without prefix (strip prefix from subfield ID)
+					// For group fields, try common prefixes
+					$prefixes_to_try = [];
+					
+					// Try meta box prefix if available
+					if ( isset( $field['meta_box'] ) && isset( $field['meta_box']['prefix'] ) ) {
+						$prefixes_to_try[] = $field['meta_box']['prefix'];
+					}
+					
+					// Try field prefix if available
+					if ( isset( $field['prefix'] ) ) {
+						$prefixes_to_try[] = $field['prefix'];
+					}
+					
+					// Try common prefixes based on field ID
+					if ( str_starts_with( $subfield_id, 'mb_user_' ) ) {
+						$prefixes_to_try[] = 'mb_user_';
+					}
+					
+					foreach ( $prefixes_to_try as $prefix ) {
+						if ( $prefix && str_starts_with( $subfield_id, $prefix ) ) {
+							$short_id = substr( $subfield_id, strlen( $prefix ) );
+							if ( isset( $item[ $short_id ] ) ) {
+								$subvalue = $item[ $short_id ];
+								break;
+							}
+						}
+					}
+				}
+				
+				if ( $subvalue !== null ) {
+					$subvalue = $this->normalize_value( $subfield, $subvalue );
+					$normalized_item[ $subfield_id ] = $subvalue;
+				}
+			}
+			
+			$value[ $index ] = $normalized_item;
 		}
 
 		return $value;
