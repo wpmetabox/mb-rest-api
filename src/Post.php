@@ -5,10 +5,13 @@ use WP_Post;
 
 class Post extends Base {
 	public function update( $data, $post ) {
-		if ( property_exists( $post, 'post_type' ) && 'product' === $post->post_type ) {
+		if ( is_object( $post ) && method_exists( $post, 'get_id' ) && ! ( $post instanceof \WP_Post ) ) {
 			$post_id = $post->get_id();
-		} else {
+		} elseif ( $post instanceof \WP_Post ) {
 			$post_id = $post->ID;
+		} else {
+			// Fallback value
+			$post_id = isset( $post->ID ) ? $post->ID : ( isset( $post['id'] ) ? $post['id'] : 0 );
 		}
 
 		$this->update_values( $data, $post_id, $post->post_type );
