@@ -3,8 +3,8 @@ Contributors: metabox, rilwis, barcavn2
 Donate link: https://metabox.io/pricing/
 Tags: meta box, custom fields, rest api
 Requires at least: 4.1
-Tested up to: 6.6.2
-Stable tag: 2.0.5
+Tested up to: 6.9.1
+Stable tag: 2.0.6
 Requires PHP: 7.0
 License: GPLv2 or later
 
@@ -29,10 +29,8 @@ See more [Meta Box plugins](https://metabox.io/plugins/).
 
 If you like this plugin, you might also like our other WordPress products:
 
-- [Meta Box](https://metabox.io) - A powerful WordPress plugin for creating custom post types and custom fields.
 - [Slim SEO](https://wpslimseo.com) - A fast, lightweight and full-featured SEO plugin for WordPress with minimal configuration.
-- [Slim SEO Schema](https://wpslimseo.com/products/slim-seo-schema/) - An advanced, powerful and flexible plugin to add schemas to WordPress.
-- [Slim SEO Link Manager](https://wpslimseo.com/products/slim-seo-link-manager/) - Build internal link easier in WordPress with real-time reports.
+- [Falcon](https://wpfalcon.pro) - A lightweight companion for making WordPress faster, cleaner, and more secure.
 - [GretaThemes](https://gretathemes.com) - Free and premium WordPress themes that clean, simple and just work.
 - [Auto Listings](https://wpautolistings.com) - A car sale and dealership plugin for WordPress.
 
@@ -52,11 +50,14 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 
 == Changelog ==
 
+= 2.0.6 - 2026-03-09 =
+- Fix updating WooCommerce products
+
 = 2.0.5 - 2024-11-01 =
-Fix direct file access
+- Fix direct file access
 
 = 2.0.4 - 2024-08-19 =
-Fix running PHP Codesniffer when installing & autoload the plugin's main file via Composer
+- Fix running PHP Codesniffer when installing & autoload the plugin's main file via Composer
 
 = 2.0.3 - 2024-07-22 =
 - Fix PHP warning in WordPress 6.6
