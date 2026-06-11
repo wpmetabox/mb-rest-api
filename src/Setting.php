@@ -10,12 +10,14 @@ class Setting extends Base {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'get_data' ],
 			'permission_callback' => [ $this, 'has_permission' ],
+			'show_in_index'       => false,
 		] );
 
 		register_rest_route( self::NAMESPACE, '/settings-page/', [
 			'methods'             => WP_REST_Server::CREATABLE,
 			'callback'            => [ $this, 'update_data' ],
 			'permission_callback' => [ $this, 'has_permission' ],
+			'show_in_index'       => false,
 		] );
 	}
 
