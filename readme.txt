@@ -4,7 +4,7 @@ Donate link: https://metabox.io/pricing/
 Tags: meta box, custom fields, rest api
 Requires at least: 4.1
 Tested up to: 6.9.1
-Stable tag: 2.0.6
+Stable tag: 2.0.7
 Requires PHP: 7.0
 License: GPLv2 or later
 
@@ -49,6 +49,9 @@ Repeat the same process for **WP REST API** and **MB Rest API**.
 == Screenshots ==
 
 == Changelog ==
+
+= 2.0.7 - 2026-11-06 =
+- Hide the plugin's REST API endpoints from the public REST API index (`/wp-json/`)
 
 = 2.0.6 - 2026-03-09 =
 - Fix updating WooCommerce products
